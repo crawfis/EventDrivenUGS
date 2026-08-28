@@ -1,0 +1,8 @@
+{
+    "name": "CrawfisSoftware.Contracts",
+    "rootNamespace": "CrawfisSoftware.Contracts",
+    "references": [
+        "CrawfisSoftware.EventsPublisher"
+    ],
+    "autoReferenced": true
+}

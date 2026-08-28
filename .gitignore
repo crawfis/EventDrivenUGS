@@ -1,0 +1,13 @@
+# Unity leftovers, should never appear in a package repo
+Library/
+Temp/
+Obj/
+Build/
+Logs/
+UserSettings/
+*.csproj
+*.sln
+*.user
+.vs/
+.idea/
+.DS_Store
