@@ -1,11 +1,6 @@
-//using Blocks.Achievements;
-
-using Blocks.Achievements;
+using System.Collections.Generic;
 
 using CrawfisSoftware.UGS.Events;
-
-using System.Collections;
-using System.Collections.Generic;
 
 using UnityEngine;
 
@@ -14,38 +9,33 @@ using UGSBus = CrawfisSoftware.Events.EventsFor<CrawfisSoftware.UGS.Events.UGS_E
 namespace CrawfisSoftware.UGS.Achievements
 {
     /// <summary>
-    /// Unlocks achievements based on distance travelled.
-    /// Receives distance updates via UGS events (bridged from TempleRun domain).
-    ///    Dependencies: EventsPublisherUGS, AchievementsObserver
-    ///    Subscribes: UGS_EventsEnum.DistanceUpdated
-    ///    Publishes: (via AchievementsObserver)
+    /// Unlocks an achievement once the player passes each configured distance.
+    /// Distance arrives as a UGS event, bridged in from the gameplay domain.
+    ///    Dependencies: AchievementsService
+    ///    Subscribes: UGS_EventsEnum.UGS_DistanceUpdated, UGS_EventsEnum.AchievementUnlocked
+    ///    Publishes: none directly (AchievementsService publishes the claim/unlock events)
     /// </summary>
     public class DistanceBasedAchievements : MonoBehaviour
     {
+        [Tooltip("Distances that trigger an unlock. Must be in ascending order.")]
         [SerializeField] private List<float> _distances;
-        private float _currentDistance = 0f;
-        private int _nextAchievementIndex = 0;
+
+        [Tooltip("Achievement id to unlock. Must exist in the deployed achievement definitions.")]
+        [SerializeField] private string _achievementId = "first_achievement";
+
+        private float _currentDistance;
+        private int _nextAchievementIndex;
 
         private void Awake()
         {
-            // Ensure the AchievementsObserver is initialized
-            var observer = AchievementsObserver.Instance;
-            AchievementsObserver.Instance.AchievementUnlocked += (achievement) =>
-            {
-                Debug.Log($"Achievement Unlocked: {achievement.Id}");
-            };
-
-            // Subscribe to distance updates from the bridge
-            UGSBus.Subscribe(
-                UGS_EventsEnum.UGS_DistanceUpdated,
-                OnDistanceUpdated);
+            UGSBus.Subscribe(UGS_EventsEnum.UGS_DistanceUpdated, OnDistanceUpdated);
+            UGSBus.Subscribe(UGS_EventsEnum.AchievementUnlocked, OnAchievementUnlocked);
         }
 
         private void OnDestroy()
         {
-            UGSBus.Unsubscribe(
-                UGS_EventsEnum.UGS_DistanceUpdated,
-                OnDistanceUpdated);
+            UGSBus.Unsubscribe(UGS_EventsEnum.UGS_DistanceUpdated, OnDistanceUpdated);
+            UGSBus.Unsubscribe(UGS_EventsEnum.AchievementUnlocked, OnAchievementUnlocked);
         }
 
         private void OnDistanceUpdated(string eventName, object sender, object data)
@@ -57,24 +47,26 @@ namespace CrawfisSoftware.UGS.Achievements
             }
         }
 
+        private void OnAchievementUnlocked(string eventName, object sender, object data)
+        {
+            if (data is Achievement achievement)
+                Debug.Log($"Achievement Unlocked: {achievement.Id}");
+        }
+
         private void CheckAndUnlockAchievements()
         {
+            if (_distances == null) return;
+
             while (_nextAchievementIndex < _distances.Count &&
                    _currentDistance > _distances[_nextAchievementIndex])
             {
                 Debug.Log($"Distance Achievement reached at {_distances[_nextAchievementIndex]}");
-                var ach = AchievementsObserver.Instance.RuntimeAchievementData.Achievements
-                    .Find(a => a.Id == "first_achievement");
-                StartCoroutine(UnlockAchievementAsync(ach.Id));
-                _nextAchievementIndex++;
-            }
-        }
 
-        private IEnumerator UnlockAchievementAsync(string achievement)
-        {
-            if (achievement != null)
-            {
-                yield return AchievementsObserver.Instance.UnlockAchievementAsync(achievement);
+                // Unlock by id rather than by looking the achievement up first. The lookup used to
+                // run against a catalogue that may not have been fetched yet, and dereferencing the
+                // null it returned threw before the unlock was ever attempted.
+                AchievementsService.Instance.UnlockAchievement(_achievementId);
+                _nextAchievementIndex++;
             }
         }
     }

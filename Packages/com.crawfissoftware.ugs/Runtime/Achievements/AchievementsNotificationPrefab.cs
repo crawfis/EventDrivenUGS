@@ -1,7 +1,4 @@
-using Blocks.Achievements.UI;
-
-using System.Collections.Generic;
-using System.Linq;
+using CrawfisSoftware.UGS.Achievements.UI;
 
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -10,13 +7,9 @@ namespace CrawfisSoftware.UGS.Achievements
 {
     /// <summary>
     /// Monobehaviour allowing drag and drop of the AchievementNotificationElement in a scene.
-    ///    Dependencies: PanelRenderer (notification panel), AchievementNotificationElement
+    ///    Dependencies: PanelRenderer (notification panel), AchievementToastElement
     /// </summary>
     /// <remarks>
-    /// <para>A PanelRenderer fork of <c>Blocks.Achievements.AchievementsNotificationPrefab</c>,
-    /// matching the existing fork of <c>AchievementsPrefab</c>. The Blocks original is vendored
-    /// Unity sample code and is deliberately left untouched - re-importing the sample would
-    /// overwrite an in-place edit.</para>
     /// <para>See docs/playbooks/uidocument-to-panel-renderer.md. The shape is Pattern 1: the
     /// visual tree is reached through the UIReload callback rather than a <c>rootVisualElement</c>
     /// property, and a reload rebuilds the tree, so re-parenting has to be idempotent and repeated
@@ -34,7 +27,7 @@ namespace CrawfisSoftware.UGS.Achievements
         /// <summary>
         /// The UI control for the notification
         /// </summary>
-        public AchievementNotificationElement AchievementsNotification;
+        public AchievementToastElement AchievementsNotification;
 
         private VisualElement _root;
         private VisualElement _externalParent;
@@ -77,22 +70,11 @@ namespace CrawfisSoftware.UGS.Achievements
         /// <param name="rootElement">UI element to parent to; defaults to the panel's own root.</param>
         public void Init(VisualElement rootElement = null)
         {
-            // AchievementBaseElement.Icons is STATIC and shared with AchievementsPrefab, which
-            // ships four icons while this prefab ships none - in the Blocks original too. Assigning
-            // unconditionally means whichever initialises last wins, so an empty array here wipes
-            // the icons the achievements panel supplied and toasts render blank. Publish ours only
-            // if we actually have any; otherwise just guarantee the list is non-null, since
-            // AchievementBaseElement calls Icons.Find without a null check.
-            if (m_Icons != null && m_Icons.Length > 0)
-            {
-                AchievementBaseElement.Icons = m_Icons.ToList();
-            }
-            else
-            {
-                AchievementBaseElement.Icons ??= new List<Texture2D>();
-            }
-
-            AchievementsNotification = new AchievementNotificationElement();
+            // Icons go to the shared library, which merges by name and keeps the first texture
+            // registered under each. That removes the ordering hazard this method used to guard
+            // against by hand: this prefab typically ships none while the achievements panel ships
+            // the full set, and a plain assignment let whichever ran last blank the other's icons.
+            AchievementsNotification = new AchievementToastElement(m_Icons);
 
             if (rootElement != null)
             {

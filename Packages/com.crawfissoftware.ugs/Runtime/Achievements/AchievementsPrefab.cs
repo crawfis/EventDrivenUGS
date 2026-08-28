@@ -1,8 +1,5 @@
-using Blocks.Achievements.UI;
-
+using CrawfisSoftware.UGS.Achievements.UI;
 using CrawfisSoftware.UGS.Events;
-
-using System.Linq;
 
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -13,7 +10,7 @@ namespace CrawfisSoftware.UGS.Achievements
 {
     /// <summary>
     /// Monobehaviour script allowing drag and drop of the AchievementsContainer in a scene.
-    ///    Dependencies: PanelRenderer (achievements panel), AchievementsContainer
+    ///    Dependencies: PanelRenderer (achievements panel), AchievementsContainerElement
     ///    Subscribes: UGS_EventsEnum.AchievementsOpening, UGS_EventsEnum.AchievementsClosing
     ///    Publishes: UGS_EventsEnum.AchievementsClosed
     /// </summary>
@@ -30,7 +27,7 @@ namespace CrawfisSoftware.UGS.Achievements
         [SerializeField]
         PanelRenderer m_UiPanel;
 
-        public AchievementsContainer AchievementsContainer { get; private set; }
+        public AchievementsContainerElement AchievementsContainer { get; private set; }
 
         private VisualElement _root;
         private VisualElement _externalParent;
@@ -110,8 +107,10 @@ namespace CrawfisSoftware.UGS.Achievements
         /// <param name="rootElement">UI element to parent to</param>
         public void Initialize(bool useTrustedClient, VisualElement rootElement = null)
         {
-            AchievementBaseElement.Icons = m_Icons.ToList();
-            AchievementsContainer = new AchievementsContainer(useTrustedClient, DevelopmentMode);
+            // Icons are handed to the container, which registers them with the shared icon library.
+            // The library merges rather than overwrites, so it no longer matters whether this panel
+            // or the unlock toast initialises first.
+            AchievementsContainer = new AchievementsContainerElement(useTrustedClient, DevelopmentMode, m_Icons);
 
             if (rootElement != null)
             {
