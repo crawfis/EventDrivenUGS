@@ -1,14 +1,8 @@
-//using Blocks.Leaderboards;
-
-using Blocks.Leaderboards;
-
-using CrawfisSoftware.Events;
 using CrawfisSoftware.UGS.Events;
 
 using System;
 using System.Threading.Tasks;
 
-using Unity.Mathematics;
 using Unity.Services.Leaderboards;
 using Unity.Services.Leaderboards.Models;
 
@@ -18,17 +12,21 @@ using UGSBus = CrawfisSoftware.Events.EventsFor<CrawfisSoftware.UGS.Events.UGS_E
 
 namespace CrawfisSoftware.UGS.Leaderboard
 {
+    /// <summary>
+    /// Submits the player's end-of-session score to a leaderboard.
+    ///    Dependencies: Unity.Services.Leaderboards
+    ///    Subscribes: UGS_EventsEnum.ScoreUpdating
+    ///    Publishes: UGS_EventsEnum.ScoreUpdated, UGS_EventsEnum.ScoreFailedToUpdate
+    /// </summary>
     public class LeaderboardPlayerController : MonoBehaviour
     {
         [SerializeField] private string LeaderboardId = "DailyDistance";
-        [SerializeField] private bool _useTrustedClient = false;
 
         public bool IsUpdating { get; private set; } = false;
+
         private void Start()
         {
             UGSBus.Subscribe(UGS_EventsEnum.ScoreUpdating, OnGameEnding);
-            LeaderboardsObserver.Instance.LeaderboardId = LeaderboardId;
-            LeaderboardsObserver.Instance.UseTrustedClient = _useTrustedClient;
         }
         private void OnDestroy()
         {
@@ -36,15 +34,34 @@ namespace CrawfisSoftware.UGS.Leaderboard
         }
         private void OnGameEnding(string eventName, object sender, object data)
         {
+            // The score arrives as a boxed payload from another domain, so its type is a convention
+            // rather than a guarantee. Every numeric shape is accepted and anything else is refused
+            // with a message naming what actually arrived - the previous cast assumed float and
+            // threw from inside the handler on null or on any other numeric type, which took the
+            // submission down without ever reporting a failure.
+            if (!TryReadScore(data, out long score))
+            {
+                Debug.LogWarning(
+                    $"{nameof(LeaderboardPlayerController)}: ignoring {UGS_EventsEnum.ScoreUpdating} - " +
+                    $"expected a number, got {(data == null ? "null" : data.GetType().Name)}.");
+                UGSBus.Publish(UGS_EventsEnum.ScoreFailedToUpdate, this, LeaderboardId);
+                return;
+            }
+
             IsUpdating = true;
-            Type type = data.GetType();
-            Debug.Log($"LeaderboardPlayerController: OnGameEnding called with data of type {type}");
-            float? scoref = data as float?;
-            long score = (int)scoref.Value;
-            // Use an async lambda to handle the awaiting
             var _ = HandleScoreUpload(LeaderboardId, score);
-            //var _ = LeaderboardsService.Instance.AddPlayerScoreAsync("DailyDistance", score);
-            //UGSBus.Publish(UGS_EventsEnum.ScoreUpdated, this, null);
+        }
+
+        private static bool TryReadScore(object data, out long score)
+        {
+            switch (data)
+            {
+                case float f: score = (long)f; return true;
+                case double d: score = (long)d; return true;
+                case int i: score = i; return true;
+                case long l: score = l; return true;
+                default: score = 0; return false;
+            }
         }
 
         private async Task HandleScoreUpload(string leaderboardId, long score)

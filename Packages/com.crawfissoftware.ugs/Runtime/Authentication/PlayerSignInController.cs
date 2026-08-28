@@ -1,5 +1,3 @@
-using Blocks.PlayerAccount;
-
 using CrawfisSoftware.UGS.Events;
 
 using UnityEngine;
@@ -11,7 +9,7 @@ namespace CrawfisSoftware.UGS.Authentication
 {
     /// <summary>
     /// Shows/hides the player sign-in panel around the UGS authentication flow.
-    ///    Dependencies: PanelRenderer (sign-in panel), AuthenticationObserver
+    ///    Dependencies: PanelRenderer (sign-in panel), PlayerSignIn
     ///    Subscribes: UGS_EventsEnum.PlayerSigningIn, UGS_EventsEnum.PlayerAuthenticated,
     ///                UGS_EventsEnum.PlayerSignedOut
     ///    Publishes: UGS_EventsEnum.PlayerSigningOut
@@ -20,7 +18,6 @@ namespace CrawfisSoftware.UGS.Authentication
     {
         [SerializeField] PanelRenderer signInPanel;
 
-        AuthenticationObserver m_AuthenticationObserver;
         const string k_HiddenClass = "hidden";
         VisualElement _root;
         VisualElement _signInElement;
@@ -29,8 +26,6 @@ namespace CrawfisSoftware.UGS.Authentication
 
         private void Awake()
         {
-            m_AuthenticationObserver = new AuthenticationObserver();
-
             UGSBus.Subscribe(UGS_EventsEnum.PlayerSigningIn, OnPlayerSigningIn);
             UGSBus.Subscribe(UGS_EventsEnum.PlayerAuthenticated, OnSignIn);
             UGSBus.Subscribe(UGS_EventsEnum.PlayerSignedOut, OnPlayerSignOut);
@@ -128,10 +123,11 @@ namespace CrawfisSoftware.UGS.Authentication
             if (signInPanel == null)
             {
                 Debug.LogError("No PanelRenderer assigned on PlayerSignInController!");
-                return;
             }
 
-            m_AuthenticationObserver.RegisterSignedInCallback(() => SetHidden(true));
+            // There is deliberately no second "signed in" callback here. The PlayerAuthenticated
+            // subscription in Awake already hides the panel, and the observer this replaced
+            // registered a duplicate that did exactly the same thing - with no way to unregister it.
         }
     }
 }

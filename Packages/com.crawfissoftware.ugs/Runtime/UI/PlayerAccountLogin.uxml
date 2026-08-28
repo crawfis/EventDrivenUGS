@@ -1,0 +1,11 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <!-- The stylesheet is linked by GUID, and the sign-in element is named by its FULLY QUALIFIED
+         type name. Neither is checked at compile time: rename the class or its namespace and this
+         tag silently produces nothing, leaving an empty modal at runtime. -->
+    <Style src="project://database/Packages/com.crawfissoftware.ugs/Runtime/UI/Theme/UgsSignIn.uss?fileID=7433441132597879392&amp;guid=f08a751e9f166926e3db87f03a798189&amp;type=3#UgsSignIn"/>
+    <ui:VisualElement class="ugs-signin-container">
+        <ui:VisualElement name="player-account-modal">
+            <CrawfisSoftware.UGS.Authentication.PlayerSignIn/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

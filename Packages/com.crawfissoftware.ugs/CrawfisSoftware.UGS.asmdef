@@ -1,0 +1,18 @@
+{
+    "name": "CrawfisSoftware.UGS",
+    "rootNamespace": "CrawfisSoftware.UGS",
+    "references": [
+        "CrawfisSoftware.EventsPublisher",
+        "CrawfisSoftware.Common",
+        "CrawfisSoftware.Contracts",
+        "Unity.Services.Core",
+        "Unity.Services.Core.Components",
+        "Unity.Services.Authentication",
+        "Unity.Services.Authentication.PlayerAccounts",
+        "Unity.Services.CloudSave",
+        "Unity.Services.CloudCode",
+        "Unity.Services.Leaderboards",
+        "Unity.Services.RemoteConfig"
+    ],
+    "autoReferenced": true
+}
