@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UGS Package Extraction</title>
+<style>
+  :root {
+    --bg: #fbfbf9; --surface: #fff; --line: #e2e1dc; --text: #1c1c1a; --muted: #63625d;
+    --accent: #2f6f4f; --warn: #9a5b12; --bad: #a33; --code-bg: #f4f3ef;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16171a; --surface: #1e1f23; --line: #33353b; --text: #e8e8e4; --muted: #a0a09a;
+      --accent: #6fc396; --warn: #d9a05b; --bad: #e07a7a; --code-bg: #24262b;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #16171a; --surface: #1e1f23; --line: #33353b; --text: #e8e8e4; --muted: #a0a09a;
+    --accent: #6fc396; --warn: #d9a05b; --bad: #e07a7a; --code-bg: #24262b;
+    color-scheme: dark;
+  }
+  body { background: var(--bg); color: var(--text); font: 16px/1.65 -apple-system, BlinkMacSystemFont,
+         "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; }
+  .wrap { max-width: 60rem; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 .3rem; letter-spacing: -.02em; }
+  h2 { font-size: 1.3rem; margin: 3rem 0 .8rem; padding-bottom: .4rem;
+       border-bottom: 1px solid var(--line); letter-spacing: -.01em; }
+  h3 { font-size: 1.02rem; margin: 1.8rem 0 .5rem; }
+  p, li { color: var(--text); }
+  .sub { color: var(--muted); margin: 0 0 2rem; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .87em; }
+  code { background: var(--code-bg); padding: .12em .38em; border-radius: 4px; }
+  pre { background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
+        padding: .9rem 1rem; overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .93rem; }
+  th, td { text-align: left; padding: .5rem .7rem; border-bottom: 1px solid var(--line);
+           vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: .82rem; text-transform: uppercase;
+       letter-spacing: .05em; }
+  .scroll { overflow-x: auto; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+          padding: 1rem 1.2rem; margin: 1rem 0; }
+  .card.warn { border-left: 3px solid var(--warn); }
+  .card.bad  { border-left: 3px solid var(--bad); }
+  .card.good { border-left: 3px solid var(--accent); }
+  .tag { display: inline-block; font-size: .72rem; font-weight: 700; letter-spacing: .06em;
+         text-transform: uppercase; padding: .12em .5em; border-radius: 4px;
+         border: 1px solid currentColor; }
+  .t-done { color: var(--accent); } .t-todo { color: var(--warn); } .t-you { color: var(--bad); }
+  .flow { font-family: ui-monospace, monospace; font-size: .85rem; white-space: pre;
+          background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
+          padding: 1rem; overflow-x: auto; color: var(--muted); }
+  ul { padding-left: 1.2rem; } li { margin: .3rem 0; }
+  .num { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Extracting <code>Assets/UGS</code> into a UPM package</h1>
+<p class="sub">Status of <code>crawfis/CrawfisSoftware.UnityPackages</code> &mdash; three packages, four commits, not yet pushed.</p>
+
+<h2>The two blockers, and why they were one</h2>
+
+<p>The extraction as originally scoped could not ship. Two independent findings turned out to have
+a single root cause.</p>
+
+<div class="card bad">
+  <p><strong>1 &mdash; Licence.</strong> The 81 vendored files under <code>ThirdParty/Blocks/</code> are Unity
+  Asset Store <em>Extension Asset</em> content. The Asset Store EULA FAQ addresses this exact shape
+  directly:</p>
+  <blockquote style="margin:.6rem 0 .6rem 1rem; padding-left:1rem; border-left:2px solid var(--line); color:var(--muted)">
+    &ldquo;A product is not &lsquo;incorporated&rsquo; into the Licensed Product if it is designed to allow
+    your end users to extract or download assets separately from the Licensed Product.&rdquo;
+  </blockquote>
+  <p>A UPM package is precisely a thing consumers download and whose assets get extracted into
+  their project. <code>Runtime/</code> versus <code>Samples~/</code> makes no difference, and neither
+  does a private repo. The tree&rsquo;s own <code>THIRD-PARTY-NOTICES.md</code> had flagged that this
+  check would come due.</p>
+</div>
+
+<div class="card bad">
+  <p><strong>2 &mdash; <code>GeneratedBindings</code>.</strong> Found independently by 7 of 8 survey
+  dimensions. <code>CrawfisSoftware.UGS.asmdef</code> referenced
+  <code>Unity.Services.CloudCode.GeneratedBindings</code>, whose asmdef lives at
+  <code>Assets/CloudCode/GeneratedModuleBindings/</code> &mdash; in the <em>consumer&rsquo;s</em>
+  <code>Assets/</code>. A package assembly cannot reference that, so the package would not compile
+  at all. Vendoring a copy fails too: the bindings folder and its asmdef name are hard-coded and
+  regenerated on every &ldquo;Generate All Modules Bindings&rdquo;, producing a duplicate-assembly
+  collision.</p>
+</div>
+
+<div class="card good">
+  <p><strong>One cause.</strong> Of the 11 files needing <code>GeneratedBindings</code>, 6 were the
+  dead scripts already slated for deletion and 5 were inside the Blocks tree. After the deletions,
+  <strong>Blocks was its sole consumer</strong> &mdash; so removing Blocks from the package dissolved
+  both blockers at once.</p>
+</div>
+
+<h3>How deep Blocks actually reached</h3>
+<p>Far shallower than 81 files suggested, which is what made the original-replacement path viable:</p>
+<div class="scroll">
+<table>
+  <tr><th>Measure</th><th>Result</th></tr>
+  <tr><td>UGS scripts touching <code>Blocks.*</code></td><td class="num"><strong>6 of 36</strong> &mdash; all presentation</td></tr>
+  <tr><td>Shipping scenes fully clean</td><td class="num">4 of 8</td></tr>
+  <tr><td>Shipping scenes touching Blocks</td><td class="num">4, each by a single component</td></tr>
+  <tr><td>Leaderboard plumbing replaced</td><td class="num">499 lines &rarr; ~90</td></tr>
+  <tr><td>Theme rules that had any consumer</td><td class="num">~57 of 114</td></tr>
+</table>
+</div>
+
+<h2>What the packages are</h2>
+
+<div class="flow">  game events   &lt;-&gt;   GameSignals   &lt;-&gt;   UGS events
+      (your glue)      (contracts)      (ugs package)</div>
+
+<div class="scroll">
+<table>
+  <tr><th>Package</th><th>Contents</th><th>State</th></tr>
+  <tr>
+    <td><code>com.crawfissoftware.contracts</code></td>
+    <td><code>GameSignals</code>, <code>ServicesStatus</code></td>
+    <td><span class="tag t-done">complete</span></td>
+  </tr>
+  <tr>
+    <td><code>com.crawfissoftware.common</code></td>
+    <td>13 files: <code>EventChainDispatcher</code>, scene plumbing, <code>Logger</code>, <code>TimedEvent</code></td>
+    <td><span class="tag t-done">complete</span></td>
+  </tr>
+  <tr>
+    <td><code>com.crawfissoftware.ugs</code></td>
+    <td>29 staged scripts + 21 original replacements; theme, icons, sign-in UI</td>
+    <td><span class="tag t-todo">code done, scenes pending</span></td>
+  </tr>
+</table>
+</div>
+
+<p>Every file was copied <strong>with its <code>.meta</code></strong>, so GUIDs are preserved and no
+consuming scene or prefab needs a YAML edit. Spot-checked and verified byte-identical.</p>
+
+<h3>The reference collapse</h3>
+<p>Deriving the asmdef from what the code actually uses, rather than inheriting it:</p>
+<pre><code>Unity.Services.CloudCode.GeneratedBindings   removed  (unshippable)
+Unity.Services.CloudSave                     re-added deliberately
+Unity.Services.CloudCode                     re-added deliberately
+Unity.Services.Authentication.PlayerAccounts re-added deliberately
+Unity.Mathematics                            removed  (unused import)
+
+12 references  ->  11, every one a package assembly</code></pre>
+
+<h2>Defects fixed along the way</h2>
+<p>These were live bugs in the existing code, found by reading it closely enough to replace it.</p>
+<div class="scroll">
+<table>
+  <tr><th>Where</th><th>Defect</th></tr>
+  <tr><td><code>DebugEventFileLogger</code></td>
+      <td>Unguarded <code>[RuntimeInitializeOnLoadMethod]</code> opened <code>debug_event_log.txt</code>
+      with <code>append:false</code> next to the executable on <em>every</em> run of <em>every</em>
+      project referencing the package &mdash; truncating a file at the project root each Play, and
+      throwing <code>UnauthorizedAccessException</code> from <code>Awake</code> in a Program Files
+      install. Now editor/dev-build only, <code>persistentDataPath</code> in players, open failures
+      warned rather than propagated.</td></tr>
+  <tr><td>Both achievement hooks</td>
+      <td>Yielded a <code>Task</code> from inside a coroutine. A coroutine yielding a
+      non-<code>YieldInstruction</code> just resumes next frame, so every unlock was fire-and-forget
+      with unobserved exceptions.</td></tr>
+  <tr><td><code>DistanceBasedAchievements</code></td>
+      <td>Looked the achievement up and dereferenced the result; <code>Find</code> returns null until
+      the catalogue is fetched, so the first unlock threw before it was attempted. Also subscribed an
+      anonymous lambda with no unsubscribe &mdash; the repo&rsquo;s one hard rule.</td></tr>
+  <tr><td><code>LeaderboardPlayerController</code></td>
+      <td><code>data as float?</code> then <code>.Value</code>. A null or non-float payload threw from
+      inside the handler, killing the submission without publishing a failure.</td></tr>
+  <tr><td>Achievement icons</td>
+      <td>A shared static list, last-writer-wins: whichever of the panel and the toast initialised
+      second blanked the other&rsquo;s icons. The notification prefab carried a hand-written guard for
+      it. The icon library now merges by name; the guard is gone.</td></tr>
+  <tr><td><code>PlayerSignInController</code></td>
+      <td>Registered a signed-in callback duplicating a subscription it already had &mdash; and which,
+      unlike the subscription, could never be unregistered.</td></tr>
+</table>
+</div>
+
+<h2>Contracts that fail silently</h2>
+<p>Three names are load-bearing beyond C#. Each breaks at runtime with no compile error, so each
+carries a comment at its declaration.</p>
+<ul>
+  <li><strong><code>"hidden"</code></strong> &mdash; the USS class <code>PlayerSignInController</code>
+  declares as its own literal. Renaming it in the stylesheet alone hides nothing.</li>
+  <li><strong>Icon filenames</strong> &mdash; <code>thumbnail</code>, <code>_blue</code>,
+  <code>_green</code>, <code>_red</code>, <code>_black</code>. Matched against
+  <code>Texture2D.name</code> from definitions that live <em>server-side</em> in Remote Config, so a
+  renamed asset breaks a deployed game.</li>
+  <li><strong><code>&lt;CrawfisSoftware.UGS.Authentication.PlayerSignIn/&gt;</code></strong> &mdash; a
+  UXML tag resolved by string at import. Rename the class or namespace and the modal renders
+  empty.</li>
+</ul>
+
+<h2>What remains</h2>
+
+<div class="card warn">
+  <p><span class="tag t-you">yours</span> &nbsp;<strong>Scenes, prefabs and the leaderboard panel.</strong>
+  Scene and prefab YAML is your work, not mine. The 8 scenes, both achievement prefabs and the UI
+  assets still need to move into <code>Samples~/UGS-Scenes/</code> and be rewired off the deleted
+  Blocks GUIDs &mdash; the icon list on the achievements prefab, the sign-in panel settings, and the
+  leaderboard prefab instance in <code>Leaderboards.unity</code>.</p>
+  <p>The leaderboard <em>display</em> (<code>LeaderboardPanel</code> &rarr; <code>TabView</code> &rarr;
+  <code>ListView</code> &rarr; row) is specified in the design spec but not built, because it is
+  prefab-shaped. <code>LeaderboardQuery</code> &mdash; the part that is code &mdash; is done, and score
+  submission never used Blocks at all.</p>
+</div>
+
+<div class="card warn">
+  <p><span class="tag t-todo">open</span> &nbsp;<strong>Compile verification.</strong> Nothing here has
+  been through a Unity compile. The replacements are written against documented SDK shapes, but the
+  Cloud Save and Leaderboards call sites in particular deserve a real build before you trust them.
+  This is the single highest-value next step.</p>
+</div>
+
+<div class="card warn">
+  <p><span class="tag t-todo">open</span> &nbsp;<strong>The <code>.ach</code> importer.</strong> Not
+  addressed. It is Asset Store editor code that currently owns <em>your</em> achievement definitions.
+  The recommendation from the survey is to drop it: definitions are read at runtime from Remote
+  Config, so the authoring format is an editor-only concern and a ScriptableObject plus a small
+  exporter would be strictly better in a package. <code>AchievementsAccessControl.ac</code> should
+  <em>not</em> travel &mdash; it denies player writes to Cloud Save, which is exactly incompatible with
+  the default backend.</p>
+</div>
+
+<div class="card">
+  <p><span class="tag t-todo">open</span> &nbsp;<strong>The GitHub repo does not exist yet.</strong>
+  Everything is local, in four commits. Nothing has been pushed.</p>
+</div>
+
+<div class="card good">
+  <p><span class="tag t-done">safe</span> &nbsp;<strong><code>RunnerUGSTemplate</code> is untouched
+  and fully playable.</strong> Per the chosen sequencing, the cutover there is a separate later PR.
+  Rolling back means simply not doing it.</p>
+</div>
+
+<h2>Install shape</h2>
+<p>Four git URLs. UPM does not resolve git dependencies declared inside a package, so the siblings
+cannot be pulled in automatically &mdash; all four must be listed.</p>
+<pre><code>"com.crawfissoftware.eventspublisher": "https://github.com/crawfis/EventsPublisher.git",
+"com.crawfissoftware.contracts": "https://github.com/crawfis/CrawfisSoftware.UnityPackages.git?path=/Packages/com.crawfissoftware.contracts",
+"com.crawfissoftware.common":    "...?path=/Packages/com.crawfissoftware.common",
+"com.crawfissoftware.ugs":       "...?path=/Packages/com.crawfissoftware.ugs"</code></pre>
+<p>Registry dependencies &mdash; Core, Authentication, Cloud Save, Cloud Code, Leaderboards, Remote
+Config, Newtonsoft &mdash; are declared in <code>package.json</code> and resolve on their own.</p>
+
+<h2>How this was arrived at</h2>
+<p>Two adversarial survey passes, 48 agents, ~7.1M tokens. The first mapped the extraction across 8
+dimensions; the second measured the exact Blocks API surface and designed each replacement. Every
+finding was re-derived by a second agent through an independent lens before being acted on &mdash;
+which is how the <code>GeneratedBindings</code> blocker surfaced in seven dimensions at once, and
+how the estimate that deleting the dead scripts would &ldquo;drop 2 of 13 references&rdquo; was caught
+naming a reference the asmdef never had.</p>
+
+</div>
+</body>
+</html>
