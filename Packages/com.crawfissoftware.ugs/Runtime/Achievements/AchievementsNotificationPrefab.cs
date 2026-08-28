@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 namespace CrawfisSoftware.UGS.Achievements
 {
     /// <summary>
-    /// Monobehaviour allowing drag and drop of the AchievementNotificationElement in a scene.
+    /// Monobehaviour allowing drag and drop of the AchievementToastElement in a scene.
     ///    Dependencies: PanelRenderer (notification panel), AchievementToastElement
     /// </summary>
     /// <remarks>
