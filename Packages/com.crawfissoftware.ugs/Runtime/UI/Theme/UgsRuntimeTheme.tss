@@ -1,0 +1,16 @@
+/* Runtime theme for the UGS panels.
+
+   The three imports are BARE FILENAMES because the sheets sit in this same folder. That is
+   deliberate: relative hops (../..) are what made the previous theme fragile, and a failed
+   @import invalidates the whole stylesheet, dropping every panel back to Unity's default with
+   no error in the console.
+
+   unity-theme://default is the only correct way to inherit Unity's runtime theme from inside a
+   package. The /Assets/UI Toolkit/... form used by the game's own themes cannot resolve here. */
+
+@import url("unity-theme://default");
+@import url("UgsCore.uss");
+@import url("UgsControls.uss");
+@import url("UgsComponents.uss");
+
+VisualElement {}

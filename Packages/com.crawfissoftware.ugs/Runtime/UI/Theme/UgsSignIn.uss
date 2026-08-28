@@ -1,0 +1,88 @@
+/* Sign-in modal styling.
+
+   Loaded by GUID from the sign-in UXML rather than through UgsRuntimeTheme, so the modal styles
+   correctly even when hosted in a panel that uses a different theme - which is the normal case,
+   since sign-in typically renders over a game's own menu. */
+
+.hidden {
+    display: none;
+}
+
+.ugs-signin-container {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+.ugs-signin-modal {
+    min-width: 420px;
+    max-width: 560px;
+    background-color: var(--ugs-color-scrim);
+    border-width: var(--ugs-border);
+    border-color: var(--ugs-color-line);
+    border-radius: var(--ugs-radius-md);
+    padding: var(--ugs-space-8);
+    align-items: center;
+}
+
+.ugs-signin-header {
+    font-size: var(--ugs-text-lg);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    letter-spacing: var(--ugs-tracking-wide);
+    margin-bottom: var(--ugs-space-6);
+}
+
+.ugs-signin-options {
+    width: 100%;
+    align-items: center;
+}
+
+.ugs-signin-options > * {
+    margin-bottom: var(--ugs-space-3);
+}
+
+.ugs-signin-separator {
+    width: 100%;
+    height: 1px;
+    background-color: var(--ugs-color-line);
+    margin-top: var(--ugs-space-4);
+    margin-bottom: var(--ugs-space-4);
+}
+
+.ugs-signin-actions {
+    flex-direction: row;
+    justify-content: center;
+    width: 100%;
+}
+
+.ugs-signin-footer {
+    -unity-text-align: middle-center;
+    color: var(--ugs-color-text-muted);
+    font-size: var(--ugs-text-xs);
+    white-space: normal;
+    margin-top: var(--ugs-space-4);
+}
+
+/* Error row. Hidden until the controller has something to say - it flips display, so the base
+   state here must stay `none`. */
+.ugs-signin-error {
+    display: none;
+    flex-direction: row;
+    align-items: center;
+    color: var(--ugs-color-danger);
+    font-size: var(--ugs-text-sm);
+    white-space: normal;
+    margin-top: var(--ugs-space-3);
+}
+
+/* Drawn as a border rather than a bitmap, so the package ships no error sprite. */
+.ugs-error-icon {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    margin-right: var(--ugs-space-2);
+    border-width: var(--ugs-border);
+    border-color: var(--ugs-color-danger);
+    border-radius: 9px;
+}

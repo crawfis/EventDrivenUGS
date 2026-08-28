@@ -1,0 +1,198 @@
+/* Primitive controls: button, label, header, text field, scroll view, progress bar, modal.
+
+   Selectors beginning `unity-` are Unity's own UI Toolkit part names - public API surface, not
+   ours. They are the only names in this file that cannot be renamed. */
+
+/* ---------- button ---------- */
+
+.ugs-button {
+    height: var(--ugs-control-height);
+    min-width: var(--ugs-control-min-width);
+    padding-left: var(--ugs-space-6);
+    padding-right: var(--ugs-space-6);
+    background-color: rgba(0, 0, 0, 0);
+    border-width: var(--ugs-border);
+    border-color: var(--ugs-color-text);
+    border-radius: var(--ugs-radius-pill);
+    color: var(--ugs-color-text);
+    letter-spacing: var(--ugs-tracking-wide);
+    -unity-font-style: bold;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.ugs-button:hover:enabled,
+.ugs-button:focus:enabled {
+    background-color: var(--ugs-color-text);
+    color: var(--ugs-color-text-inverse);
+}
+
+.ugs-button:active:enabled {
+    background-color: var(--ugs-color-text-muted);
+    border-color: var(--ugs-color-text-muted);
+    color: var(--ugs-color-text-inverse);
+}
+
+.ugs-button:disabled {
+    background-color: rgba(0, 0, 0, 0);
+    border-color: var(--ugs-color-text-disabled);
+    color: var(--ugs-color-text-disabled);
+}
+
+.ugs-button--sm {
+    height: var(--ugs-control-height-sm);
+    min-width: 96px;
+    border-radius: var(--ugs-radius-md);
+    font-size: var(--ugs-text-sm);
+}
+
+.ugs-button--xs {
+    height: var(--ugs-control-height-sm);
+    width: var(--ugs-control-height-sm);
+    min-width: var(--ugs-control-height-sm);
+    padding-left: 0;
+    padding-right: 0;
+    border-radius: var(--ugs-radius-md);
+}
+
+/* ---------- text ---------- */
+
+.ugs-label {
+    color: var(--ugs-color-text);
+    white-space: normal;
+}
+
+.ugs-header {
+    width: 100%;
+    font-size: var(--ugs-text-lg);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: var(--ugs-color-text-muted);
+    letter-spacing: var(--ugs-tracking-wide);
+}
+
+.ugs-header--sm {
+    font-size: var(--ugs-text-md);
+}
+
+.ugs-space-bottom {
+    margin-bottom: var(--ugs-space-4);
+}
+
+/* ---------- text field ---------- */
+
+.ugs-textfield {
+    min-width: var(--ugs-control-min-width);
+    min-height: var(--ugs-control-height);
+    border-width: var(--ugs-border);
+    border-color: var(--ugs-color-line);
+    border-radius: var(--ugs-radius-md);
+    flex-grow: 1;
+}
+
+.ugs-textfield > .unity-base-field__label {
+    display: none;
+}
+
+.ugs-textfield > .unity-base-field__input {
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    color: var(--ugs-color-text);
+    padding: var(--ugs-space-3);
+    --unity-cursor-color: var(--ugs-color-text);
+    --unity-selection-color: var(--ugs-color-highlight);
+}
+
+.ugs-textfield > .unity-base-text-field__input--placeholder {
+    color: var(--ugs-color-text-muted);
+}
+
+.ugs-textfield:focus {
+    border-color: var(--ugs-color-text);
+}
+
+/* ---------- scroll view ---------- */
+
+.ugs-scroll-view {
+    flex-grow: 1;
+    width: 100%;
+}
+
+.ugs-scroll-view .unity-scroll-view__content-container {
+    align-items: center;
+}
+
+.ugs-scroll-view .unity-scroller {
+    margin-left: var(--ugs-space-2);
+}
+
+.ugs-scroll-view .unity-base-slider__dragger {
+    align-self: center;
+    left: auto;
+    width: var(--ugs-space-1);
+    border-radius: var(--ugs-radius-sm);
+    background-color: var(--ugs-color-text-muted);
+}
+
+.ugs-scroll-view .unity-base-slider__tracker,
+.ugs-scroll-view .unity-base-slider__dragger-border,
+.ugs-scroll-view .unity-scroller__low-button,
+.ugs-scroll-view .unity-scroller__high-button {
+    display: none;
+}
+
+/* ---------- progress bar ---------- */
+
+.ugs-progress-bar .unity-progress-bar {
+    min-height: 14px;
+    max-height: 14px;
+    width: 100%;
+    border-radius: 7px;
+    overflow: hidden;
+    justify-content: center;
+}
+
+.ugs-progress-bar .unity-progress-bar__container {
+    justify-content: center;
+}
+
+.ugs-progress-bar .unity-progress-bar__background {
+    position: absolute;
+    width: 100%;
+    min-height: 14px;
+    max-height: 14px;
+    background-color: var(--ugs-color-surface);
+    border-width: 0;
+    border-radius: 7px;
+    overflow: hidden;
+}
+
+.ugs-progress-bar .unity-progress-bar__progress {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    height: 8px;
+    margin: 0;
+    padding: 0;
+    border-radius: 4px;
+    background-color: var(--ugs-color-accent);
+    transition-property: width;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-in-out;
+}
+
+.ugs-progress-bar .unity-progress-bar__title {
+    display: none;
+}
+
+/* ---------- modal ---------- */
+
+.ugs-modal {
+    background-color: var(--ugs-color-scrim);
+    border-radius: var(--ugs-radius-md);
+    padding: var(--ugs-space-8) var(--ugs-space-12);
+    align-items: center;
+    justify-content: flex-start;
+    flex-grow: 0;
+    flex-shrink: 1;
+}

@@ -1,0 +1,64 @@
+/* Design tokens, global reset, and the one utility class that is a runtime contract.
+
+   Every token is --ugs- prefixed so a host game's stylesheet cannot collide with it. Spacing is
+   an 8pt grid; --ugs-radius-pill is written as a literal 24px rather than derived from
+   --ugs-control-height because USS has no calc() for custom properties. */
+
+:root {
+    /* colour */
+    --ugs-color-surface: rgb(18, 18, 22);
+    --ugs-color-surface-raised: rgb(34, 34, 40);
+    --ugs-color-scrim: rgba(12, 12, 16, 0.94);
+    --ugs-color-line: rgb(72, 72, 82);
+    --ugs-color-text: rgb(240, 240, 244);
+    --ugs-color-text-muted: rgb(158, 158, 170);
+    --ugs-color-text-inverse: rgb(14, 14, 18);
+    --ugs-color-text-disabled: rgba(240, 240, 244, 0.4);
+    --ugs-color-accent: rgb(96, 196, 128);
+    --ugs-color-highlight: rgba(64, 148, 208, 0.55);
+    --ugs-color-danger: rgb(214, 78, 78);
+
+    /* space */
+    --ugs-space-1: 4px;
+    --ugs-space-2: 8px;
+    --ugs-space-3: 12px;
+    --ugs-space-4: 16px;
+    --ugs-space-6: 24px;
+    --ugs-space-8: 32px;
+    --ugs-space-12: 48px;
+
+    /* type */
+    --ugs-text-xs: 13px;
+    --ugs-text-sm: 15px;
+    --ugs-text-md: 18px;
+    --ugs-text-lg: 24px;
+    --ugs-tracking-tight: 1px;
+    --ugs-tracking-wide: 3px;
+
+    /* shape */
+    --ugs-radius-sm: 6px;
+    --ugs-radius-md: 14px;
+    --ugs-radius-pill: 24px;
+    --ugs-border: 2px;
+    --ugs-control-height: 48px;
+    --ugs-control-height-sm: 32px;
+    --ugs-control-min-width: 160px;
+}
+
+/* Scoped to panels that use this theme, i.e. UGS panels only. -unity-font is deliberately not
+   set: shipping a font in a package means shipping a licence with it, and Unity's default font
+   is already correct for every target. */
+* {
+    margin: 0;
+    padding: 0;
+    font-size: var(--ugs-text-md);
+    letter-spacing: var(--ugs-tracking-tight);
+    color: var(--ugs-color-text);
+}
+
+/* RUNTIME CONTRACT: PlayerSignInController toggles this exact literal to show and hide the
+   sign-in modal. It is also declared in UgsSignIn.uss so the modal still collapses when that
+   sheet is loaded without this theme. */
+.hidden {
+    display: none;
+}

@@ -1,0 +1,173 @@
+/* Composite components: the achievement card and toast, the achievement grid, and the
+   leaderboard tab bar and rows. */
+
+/* ---------- achievement card ---------- */
+
+.ugs-achievement {
+    background-color: var(--ugs-color-surface-raised);
+    border-width: var(--ugs-border);
+    border-color: var(--ugs-color-line);
+    border-radius: var(--ugs-radius-md);
+    margin: var(--ugs-space-2);
+    padding: var(--ugs-space-4);
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+/* The fixed size is load-bearing, not decoration: the grid wraps on it. */
+.ugs-achievement-card {
+    width: 300px;
+    min-width: 300px;
+    max-width: 300px;
+    height: 350px;
+    min-height: 350px;
+    max-height: 350px;
+}
+
+.ugs-achievement-card__title {
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+    font-size: var(--ugs-text-md);
+    white-space: normal;
+    margin-top: var(--ugs-space-4);
+    margin-bottom: var(--ugs-space-2);
+}
+
+/* No background-image default: the element always assigns style.backgroundImage from the icon
+   list, so a default here would only be a relative path waiting to break. */
+.ugs-achievement-card__icon {
+    flex-grow: 1;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.ugs-achievement-card__description {
+    -unity-text-align: middle-center;
+    white-space: normal;
+    color: var(--ugs-color-text-muted);
+    font-size: var(--ugs-text-sm);
+    margin-bottom: var(--ugs-space-4);
+}
+
+/* display:none is the BASE state - the card flips style.display when the achievement unlocks. */
+.ugs-achievement-card__unlocked {
+    display: none;
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+    color: var(--ugs-color-accent);
+    margin-bottom: var(--ugs-space-3);
+}
+
+.ugs-achievement-card__progress {
+    display: flex;
+}
+
+.ugs-achievement-card__progress-header {
+    flex-direction: row;
+    align-items: center;
+    align-self: center;
+}
+
+.ugs-achievement-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    align-content: flex-start;
+    min-height: auto;
+}
+
+/* ---------- achievement toast ---------- */
+
+.ugs-achievement-toast {
+    position: absolute;
+    right: var(--ugs-space-4);
+    bottom: var(--ugs-space-4);
+    width: 300px;
+    height: 200px;
+    flex-grow: 0;
+}
+
+/* RUNTIME CONTRACT: the toast's show/hide state machine advances on TransitionEndEvent. Without
+   a transition declared here that event never fires and a shown toast never retracts.
+   transition-property is explicit rather than `all` so an unrelated style change cannot fire it. */
+.ugs-achievement-toast--animated {
+    transition-property: translate;
+    transition-duration: 0.5s;
+    transition-timing-function: ease-in-out;
+}
+
+/* 260 clears the 200px height plus the 16px bottom offset, so the toast fully leaves the panel. */
+.ugs-achievement-toast--offscreen {
+    translate: 0 260px 0;
+}
+
+/* ---------- leaderboard ---------- */
+
+.ugs-leaderboard-row {
+    flex-direction: row;
+    width: 100%;
+    height: var(--ugs-control-height-sm);
+    min-width: 480px;
+    align-items: center;
+    -unity-text-align: middle-left;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ugs-color-line);
+}
+
+/* Two classes so it wins on specificity rather than on sheet order. */
+.ugs-leaderboard-row.ugs-leaderboard-row--current {
+    background-color: var(--ugs-color-highlight);
+}
+
+.ugs-leaderboard-row__rank {
+    width: 56px;
+    font-size: var(--ugs-text-md);
+    -unity-font-style: bold;
+}
+
+.ugs-leaderboard-row__name {
+    font-size: var(--ugs-text-sm);
+}
+
+.ugs-leaderboard-row__score {
+    font-size: var(--ugs-text-sm);
+    margin-left: auto;
+    padding-left: var(--ugs-space-4);
+}
+
+.ugs-tab-bar {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.ugs-tab-button {
+    height: var(--ugs-control-height);
+    padding-left: var(--ugs-space-4);
+    padding-right: var(--ugs-space-4);
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    border-bottom-width: var(--ugs-border);
+    border-bottom-color: rgba(0, 0, 0, 0);
+    color: var(--ugs-color-text-muted);
+    letter-spacing: var(--ugs-tracking-wide);
+    -unity-text-align: middle-center;
+}
+
+.ugs-tab-button:hover:enabled {
+    color: var(--ugs-color-text);
+}
+
+.ugs-tab-button:checked {
+    color: var(--ugs-color-text);
+    border-bottom-color: var(--ugs-color-text);
+}
+
+.ugs-tab-button .unity-toggle__checkmark {
+    display: none;
+}
+
+.ugs-tab-button__underline {
+    display: none;
+}
