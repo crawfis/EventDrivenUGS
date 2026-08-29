@@ -1,3 +1,5 @@
+using System;
+
 using CrawfisSoftware.UGS.Achievements.UI;
 
 using UnityEngine;
@@ -25,8 +27,15 @@ namespace CrawfisSoftware.UGS.Achievements
         PanelRenderer m_UiPanel;
 
         /// <summary>
-        /// The UI control for the notification
+        /// The UI control for the notification. Created by <see cref="Init"/> at runtime.
         /// </summary>
+        /// <remarks>
+        /// A <see cref="VisualElement"/> is neither a <see cref="UnityEngine.Object"/> nor
+        /// <c>[Serializable]</c>, so Unity cannot serialize this and warns (UAC1001) on a public
+        /// field that looks like it should be wired in the Inspector. It is runtime-only; saying so
+        /// silences the analyser and stops anyone expecting to drag something into it.
+        /// </remarks>
+        [NonSerialized]
         public AchievementToastElement AchievementsNotification;
 
         private VisualElement _root;

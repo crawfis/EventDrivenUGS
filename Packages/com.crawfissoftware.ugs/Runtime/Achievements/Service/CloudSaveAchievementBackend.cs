@@ -7,6 +7,8 @@ using Newtonsoft.Json;
 using Unity.Services.CloudSave;
 using Unity.Services.RemoteConfig;
 
+using PlayerDeleteOptions = Unity.Services.CloudSave.Models.Data.Player.DeleteOptions;
+
 namespace CrawfisSoftware.UGS.Achievements
 {
     /// <summary>
@@ -71,7 +73,7 @@ namespace CrawfisSoftware.UGS.Achievements
         {
             try
             {
-                await CloudSaveService.Instance.Data.Player.DeleteAsync(CloudSaveKey);
+                await CloudSaveService.Instance.Data.Player.DeleteAsync(CloudSaveKey, new PlayerDeleteOptions());
             }
             catch (Exception e)
             {
