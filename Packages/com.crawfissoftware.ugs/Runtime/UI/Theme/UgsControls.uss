@@ -143,7 +143,11 @@
 
 /* ---------- progress bar ---------- */
 
-.ugs-progress-bar .unity-progress-bar {
+/* The class is added to the ProgressBar itself, and Unity puts unity-progress-bar on that same
+   element - so this rule has to be the class alone. As a descendant selector it matched nothing
+   and the bar kept its default height. The four rules below ARE descendants: container, background,
+   progress and title really are children of the ProgressBar. */
+.ugs-progress-bar {
     min-height: 14px;
     max-height: 14px;
     width: 100%;

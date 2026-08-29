@@ -10,6 +10,21 @@ using UGSBus = CrawfisSoftware.Events.EventsFor<CrawfisSoftware.UGS.Events.UGS_E
 
 namespace CrawfisSoftware.UGS
 {
+    /// <summary>
+    /// Fetches Remote Config once the services report they are ready, and announces the result.
+    ///    Dependencies: Unity.Services.RemoteConfig, UGS_State
+    ///    Subscribes: UGS_EventsEnum.RemoteConfigFetching
+    ///    Publishes: UGS_EventsEnum.RemoteConfigFetched, RemoteConfigUpdated,
+    ///               RemoteConfigFetchFailed, RemoteConfigFailed
+    /// </summary>
+    /// <remarks>
+    /// <para><b>One fetch per process.</b> A second <c>RemoteConfigFetching</c> is ignored once a
+    /// fetch has succeeded, because config that changed mid-session would otherwise reapply under
+    /// a player already partway through a run. A host that genuinely wants to re-read - a different
+    /// player signing in, say - calls <see cref="Dispose"/> and then <see cref="Initialize"/>,
+    /// which is the only supported way to ask for a second fetch.</para>
+    /// <para>A <em>failed</em> fetch does not latch, so a retry is always possible.</para>
+    /// </remarks>
     public class RemoteConfigManager : MonoBehaviour, IDisposable
     {
         //[SerializeField] private string _remoteConfigDifficultyLevel = "Hard";
@@ -45,6 +60,9 @@ namespace CrawfisSoftware.UGS
         {
             UGSBus.Unsubscribe(UGS_EventsEnum.RemoteConfigFetching, OnFetchRemoteConfig);
 
+            // RemoteConfigService is a static singleton that outlives this component, so a fetch
+            // still in flight when the scene unloads would call back into a destroyed MonoBehaviour.
+            Dispose();
         }
         private void OnFetchRemoteConfig(string eventName, object sender, object data)
         {
@@ -57,10 +75,13 @@ namespace CrawfisSoftware.UGS
 
             _logRemoteConfigValues = logValues;
             
+            // Set before starting the fetch, not after: the fetch is asynchronous, so a second
+            // RemoteConfigFetching arriving while it is in flight would otherwise start another.
+            // InitializeRemoteConfig clears it again if the fetch fails.
+            _isInitialized = true;
+
             //InitializeManagers(difficultyLevel);
             InitializeRemoteConfig();
-
-            _isInitialized = true;
         }
 
         //private void InitializeManagers(string difficultyLevel)
@@ -76,12 +97,26 @@ namespace CrawfisSoftware.UGS
         //    _eventConfigManager.Initialize(_logRemoteConfigValues);
         //}
 
+        // async void, so no caller can ever observe what this throws. Anything it throws has to be
+        // caught here or it is lost entirely - and losing it means the boot waits forever for a
+        // RemoteConfigFetched that is never coming.
         private async void InitializeRemoteConfig()
         {
-            if (RemoteConfigService.Instance != null)
+            if (RemoteConfigService.Instance == null)
+            {
+                FailFetch("the Remote Config service is unavailable", null);
+                return;
+            }
+
+            try
             {
                 //RemoteConfigService.Instance.SetEnvironmentID("initial_development");
+
+                // Remove first: Initialize runs again after a failure, and the SDK event would
+                // otherwise accumulate one handler per attempt.
+                RemoteConfigService.Instance.FetchCompleted -= OnRemoteConfigFetched;
                 RemoteConfigService.Instance.FetchCompleted += OnRemoteConfigFetched;
+
                 var userAttributes = CreateUserAttributes();
                 var appAttributes = CreateAppAttributes();
                 RuntimeConfig configs = await RemoteConfigService.Instance.FetchConfigsAsync(userAttributes, appAttributes);
@@ -90,6 +125,24 @@ namespace CrawfisSoftware.UGS
                     Debug.Log($"Initial Remote Config Key: {key}");
                 }
             }
+            catch (Exception e)
+            {
+                FailFetch($"the fetch threw - {e.Message}", e);
+            }
+        }
+
+        /// <summary>
+        /// Report a fetch that will never produce a response, and un-latch so a retry is possible.
+        /// </summary>
+        private void FailFetch(string reason, Exception e)
+        {
+            if (RemoteConfigService.Instance != null)
+                RemoteConfigService.Instance.FetchCompleted -= OnRemoteConfigFetched;
+
+            _isInitialized = false;
+
+            Debug.LogWarning($"{nameof(RemoteConfigManager)}: Remote Config was not fetched because {reason}.");
+            UGSBus.Publish(UGS_EventsEnum.RemoteConfigFetchFailed, this, e?.Message ?? reason);
         }
         private UserAttributes CreateUserAttributes()
         {

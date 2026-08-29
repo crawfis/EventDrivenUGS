@@ -164,6 +164,20 @@
     border-bottom-color: var(--ugs-color-text);
 }
 
+/* A Toggle renders its caption in a child Label, and the universal rule in UgsCore.uss sets a
+   colour on that child directly - so the colours above, set on the Toggle, never reached the text.
+   These three name the Label itself. */
+.ugs-tab-button .unity-toggle__text {
+    color: var(--ugs-color-text-muted);
+    -unity-text-align: middle-center;
+    margin-left: 0;
+}
+
+.ugs-tab-button:hover:enabled .unity-toggle__text,
+.ugs-tab-button:checked .unity-toggle__text {
+    color: var(--ugs-color-text);
+}
+
 .ugs-tab-button .unity-toggle__checkmark {
     display: none;
 }

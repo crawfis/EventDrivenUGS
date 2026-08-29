@@ -59,6 +59,35 @@ achievements prefab:
   server decides. Endpoint names come from `CloudCodeAchievementEndpoints`, which is data rather
   than constants - point it at whatever module you actually deployed.
 
+#### The module contract
+
+The package calls your module by name, so it cannot check the shape at compile time. A conforming
+module publishes four functions - the names are whatever you put in
+`AchievementsService.Instance.CloudCodeEndpoints`, and these are the defaults:
+
+| Function | Arguments | Returns |
+|---|---|---|
+| `GetAchievements` | `playerId` (string) | array of `{ definition, record }` |
+| `UnlockAchievement` | `achievementId` (string) | one record |
+| `UpdateAchievementProgress` | `achievementId` (string), `progressCount` (int) | one record |
+| `ResetAllAchievements` | none | nothing |
+
+A *record* is `{ "Id": string, "Unlocked": bool, "ProgressCount": int }`; a *definition* is the same
+six fields as the Remote Config entry below.
+
+Two things are easy to get wrong and fail silently:
+
+- **`UpdateAchievementProgress` must assign, not accumulate.** `IAchievementBackend.SetProgressAsync`
+  is specified as absolute progress and the Cloud Save backend implements it that way. A module that
+  adds instead makes progress grow quadratically when a caller reports a running total, which is the
+  natural reading of "set progress".
+- `UnlockAchievement` and `UpdateAchievementProgress` take the player from the execution context;
+  only `GetAchievements` is passed a player id.
+
+There is **no default module name**, on purpose: this package ships no module, and a placeholder
+would fail per call at runtime against something that does not exist. Setting `UseTrustedClient`
+without configuring `CloudCodeEndpoints` throws at construction with a message naming what to set.
+
 This package deliberately does **not** use generated Cloud Code bindings. They are emitted into
 your project's own `Assets/` folder under a fixed assembly name, and a package assembly cannot
 reference an assembly that lives there - a package that depended on them could not compile at all.
@@ -108,9 +137,12 @@ Two things the exporter does deliberately:
 
 ## Scenes
 
-The scenes ship as a **sample**, not in `Runtime/` - Package Manager copies a sample into your
-`Assets/` with its `.meta` files, so GUIDs survive and the scenes stay editable. Import "UGS Boot
-Scenes" from the package's page in Package Manager.
+**The scenes are not in this release.** They are meant to ship as a Package Manager *sample* -
+a sample is copied into your `Assets/` with its `.meta` files, so GUIDs survive and the scenes stay
+editable - but the sample is not built yet, and a `samples` entry pointing at a folder that does not
+exist gives you an Import button that silently copies nothing. It will be declared when the folder
+is there. The worked list of what goes in it, and every GUID that has to be rewired on the way, is
+in [docs/samples-handoff.md](../../docs/samples-handoff.md).
 
 **The scenes load one another by name, so those names are public contract**, and the imported
 scenes must be added to your build profile - a scene loaded by name that is not in the build list
@@ -122,6 +154,18 @@ scenes carry.
 
 `0_BootStrap` is deliberately not included. A bootstrap composes an *application* - it owns game
 state, quit handling and scene teardown - and that is the project's job, not a package's.
+
+## Known gaps
+
+- The typed Remote Config views - `GameBalanceManager`, `FeatureFlagsManager`,
+  `CampaignEventConfigManager` - are public and complete, but `RemoteConfigManager` constructs them
+  only from code that is currently commented out, so nothing wires them for you yet. Construct them
+  yourself, or uncomment that block.
+- `DifficultyObserver` is not constructed by this package, so nothing here publishes
+  `GameSignals.DifficultySettingsAvailable`. A host that wants that signal has to drive it.
+- Nothing in this package has yet been exercised against live Unity Gaming Services. It compiles for
+  both the editor and a player, and the call sites are written against the SDK sources, but no
+  request has been made in anger.
 
 ## Licence
 

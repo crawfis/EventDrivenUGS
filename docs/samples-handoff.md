@@ -10,6 +10,20 @@ line number was read from the file it names in `RunnerUGSTemplate`. Nothing here
 
 ## 1. What the sample contains
 
+> **Re-declare the sample when the folder exists.** `package.json` no longer carries a `samples`
+> entry, because one pointing at a folder that is not there gives a consumer an Import button that
+> silently copies nothing. Once `Samples~/UGS-Scenes/` is populated, add it back:
+>
+> ```json
+> "samples": [
+>   {
+>     "displayName": "UGS Boot Scenes",
+>     "description": "The additive boot scenes for initialization, remote config, authentication, achievements and leaderboards, plus the achievement and leaderboard panels. Add the imported scenes to your build profile - they load one another by name.",
+>     "path": "Samples~/UGS-Scenes"
+>   }
+> ]
+> ```
+
 Eleven assets. Copy each **with its `.meta`** — the GUIDs are cited from other scenes, and losing
 them means rewiring 26 more lines of YAML by hand.
 

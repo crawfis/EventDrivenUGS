@@ -38,12 +38,5 @@
     "com.unity.remote-config": "4.2.5",
     "com.unity.nuget.newtonsoft-json": "3.2.2",
     "com.unity.modules.uielements": "1.0.0"
-  },
-  "samples": [
-    {
-      "displayName": "UGS Boot Scenes",
-      "description": "The additive boot scenes for initialization, remote config, authentication, achievements and leaderboards, plus the achievement and leaderboard panels. Add the imported scenes to your build profile - they load one another by name.",
-      "path": "Samples~/UGS-Scenes"
-    }
-  ]
+  }
 }

@@ -48,6 +48,13 @@
 /* Scoped to panels that use this theme, i.e. UGS panels only. -unity-font is deliberately not
    set: shipping a font in a package means shipping a licence with it, and Unity's default font
    is already correct for every target. */
+/* CAUTION: a universal selector beats inheritance. `color` here therefore reaches every element
+   directly, so setting a different colour on a CONTAINER does not reach the text inside it - the
+   child matches this rule instead of inheriting. Any rule that wants to recolour text has to name
+   the element that actually carries the text (see .ugs-tab-button in UgsComponents.uss, which has
+   to target .unity-toggle__text rather than the Toggle). Removing `color` from here would let
+   inheritance work, but it is load-bearing for every element that has no colour rule of its own,
+   so it needs a visual pass rather than a blind edit. */
 * {
     margin: 0;
     padding: 0;
