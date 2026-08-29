@@ -11,16 +11,21 @@ namespace CrawfisSoftware.UGS.Editor.Achievements
 {
     /// <summary>
     /// The authoring catalog of achievement definitions. Editor-only; never loaded at runtime.
-    ///    Dependencies: AchievementDefinition, AchievementCatalogExporter
+    ///    Dependencies: AchievementDefinition, AchievementDefinitionExporter
     ///    Subscribes: none
     ///    Publishes: none
     /// </summary>
     /// <remarks>
     /// <para>Definitions reach the game exclusively through Remote Config. This asset exists only
-    /// to author the JSON that <see cref="AchievementCatalogExporter"/> writes to a <c>.rc</c>
+    /// to author the JSON that <see cref="AchievementDefinitionExporter"/> writes to a <c>.rc</c>
     /// deployment file, which is why it is a plain <see cref="ScriptableObject"/> and not something
     /// with an importer: Unity's own dirty/undo/save already does everything the Apply and Revert
     /// buttons of the stack this replaces were doing by hand.</para>
+    /// <para><b>Named for what it holds.</b> This is a catalog of <i>definitions</i> - the authored
+    /// half. The runtime <c>CrawfisSoftware.UGS.Achievements.AchievementCatalog</c> is the set of
+    /// definitions already joined to this player's records, which is a different thing; sharing a
+    /// name across those two namespaces made any editor script that imported both fail to
+    /// compile.</para>
     /// <para><b>Create this asset in your own project, not inside the package.</b> The default
     /// export target is derived from where the asset lives, so a catalog in the consumer's project
     /// exports next to itself; a catalog inside a package would try to write into the package
@@ -28,10 +33,10 @@ namespace CrawfisSoftware.UGS.Editor.Achievements
     /// is excluded from player builds.</para>
     /// </remarks>
     [CreateAssetMenu(
-        fileName = "AchievementCatalog",
-        menuName = "CrawfisSoftware/UGS/Achievement Catalog",
+        fileName = "AchievementDefinitions",
+        menuName = "CrawfisSoftware/UGS/Achievement Definitions",
         order = 300)]
-    public sealed class AchievementCatalog : ScriptableObject
+    public sealed class AchievementDefinitionCatalog : ScriptableObject
     {
         /// <summary>File name used when no export path has been chosen.</summary>
         public const string DefaultExportFileName = "Achievements";
@@ -103,6 +108,6 @@ namespace CrawfisSoftware.UGS.Editor.Achievements
         /// rather than the first, so a catalog can be fixed in one pass.
         /// </summary>
         public bool TryValidate(out string error) =>
-            AchievementCatalogExporter.TryValidateIds(_achievements, out error);
+            AchievementDefinitionExporter.TryValidateIds(_achievements, out error);
     }
 }

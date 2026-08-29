@@ -25,7 +25,7 @@ scenes, not editing the other side.
 | `Leaderboard/` | `LeaderboardQuery` (reads), `LeaderboardPanel` (the display), `LeaderboardPlayerController` (score submission). |
 | `Achievements/` | Model, service and UI. Two interchangeable backends - see below. |
 | `UI/` | The runtime theme, the panel settings, and the achievement icons. |
-| `Editor/` | `AchievementCatalog` and its exporter - authoring only, excluded from player builds. |
+| `Editor/` | `AchievementDefinitionCatalog` and its exporter - authoring only, excluded from player builds. |
 
 ## Install
 
@@ -86,7 +86,7 @@ Two things there are contracts that fail **silently** if broken:
 
 ### Authoring them
 
-Create an **AchievementCatalog** (`Assets > Create > CrawfisSoftware > UGS > Achievement Catalog`)
+Create an **AchievementDefinitionCatalog** (`Assets > Create > CrawfisSoftware > UGS > Achievement Definitions`)
 in your own project, ideally under an `Editor/` folder so it stays out of player builds. Edit the
 definitions in the Inspector, then press **Export to Remote Config (.rc)**. Point the Deployment
 window at the written file and deploy it.

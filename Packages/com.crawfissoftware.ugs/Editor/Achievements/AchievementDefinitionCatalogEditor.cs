@@ -12,9 +12,9 @@ using UnityEngine.UIElements;
 namespace CrawfisSoftware.UGS.Editor.Achievements
 {
     /// <summary>
-    /// Inspector for <see cref="AchievementCatalog"/>: the definition list, the export path, live
+    /// Inspector for <see cref="AchievementDefinitionCatalog"/>: the definition list, the export path, live
     /// id validation, and the Export and Import buttons.
-    ///    Dependencies: AchievementCatalog, AchievementCatalogExporter
+    ///    Dependencies: AchievementDefinitionCatalog, AchievementDefinitionExporter
     ///    Subscribes: none (editor-only; no event bus involvement)
     ///    Publishes: none
     /// </summary>
@@ -25,14 +25,14 @@ namespace CrawfisSoftware.UGS.Editor.Achievements
     /// <para>Apply and Revert are gone. On a real <c>.asset</c> Unity's own dirty/undo/save does
     /// that job, and does it better than a hand-rolled serialized-object diff.</para>
     /// </remarks>
-    [CustomEditor(typeof(AchievementCatalog))]
-    public sealed class AchievementCatalogEditor : UnityEditor.Editor
+    [CustomEditor(typeof(AchievementDefinitionCatalog))]
+    public sealed class AchievementDefinitionCatalogEditor : UnityEditor.Editor
     {
         private const string EditorFolderSegment = "/Editor/";
 
         public override VisualElement CreateInspectorGUI()
         {
-            var catalog = (AchievementCatalog)target;
+            var catalog = (AchievementDefinitionCatalog)target;
             var root = new VisualElement();
 
             // The returned element is auto-bound to serializedObject, so a PropertyField on the
@@ -66,7 +66,7 @@ namespace CrawfisSoftware.UGS.Editor.Achievements
             return root;
         }
 
-        private VisualElement BuildExportPathRow(AchievementCatalog catalog)
+        private VisualElement BuildExportPathRow(AchievementDefinitionCatalog catalog)
         {
             var row = new VisualElement { style = { flexDirection = FlexDirection.Row } };
 
@@ -84,7 +84,7 @@ namespace CrawfisSoftware.UGS.Editor.Achievements
                 string startFolder = Path.GetDirectoryName(AssetDatabase.GetAssetPath(catalog));
                 string chosen = EditorUtility.SaveFilePanelInProject(
                     "Export achievements",
-                    AchievementCatalog.DefaultExportFileName,
+                    AchievementDefinitionCatalog.DefaultExportFileName,
                     AchievementsRemoteConfigKeys.RemoteConfigFileExtension.TrimStart('.'),
                     string.Empty,
                     string.IsNullOrEmpty(startFolder) ? "Assets" : startFolder);
@@ -103,13 +103,13 @@ namespace CrawfisSoftware.UGS.Editor.Achievements
             return row;
         }
 
-        private static void Export(AchievementCatalog catalog)
+        private static void Export(AchievementDefinitionCatalog catalog)
         {
             // Save first: exporting what is on disk rather than what is in the inspector would
             // write a file that does not match the asset it came from.
             AssetDatabase.SaveAssetIfDirty(catalog);
 
-            if (AchievementCatalogExporter.TryExport(catalog, out string assetPath, out string error))
+            if (AchievementDefinitionExporter.TryExport(catalog, out string assetPath, out string error))
             {
                 Debug.Log($"Achievements exported to '{assetPath}'.", catalog);
                 return;
@@ -118,12 +118,12 @@ namespace CrawfisSoftware.UGS.Editor.Achievements
             EditorUtility.DisplayDialog("Achievement export failed", error, "OK");
         }
 
-        private static void Import(AchievementCatalog catalog)
+        private static void Import(AchievementDefinitionCatalog catalog)
         {
             string chosen = EditorUtility.OpenFilePanel("Import achievement definitions", "Assets", "rc,ach,json");
             if (string.IsNullOrEmpty(chosen)) return;
 
-            if (!AchievementCatalogExporter.TryImportJson(chosen, out List<AchievementDefinition> definitions, out string error))
+            if (!AchievementDefinitionExporter.TryImportJson(chosen, out List<AchievementDefinition> definitions, out string error))
             {
                 EditorUtility.DisplayDialog("Import failed", error, "OK");
                 return;
@@ -136,7 +136,7 @@ namespace CrawfisSoftware.UGS.Editor.Achievements
             Debug.Log($"Imported {definitions.Count} achievement definitions from '{Path.GetFileName(chosen)}'.", catalog);
         }
 
-        private static void RefreshValidation(AchievementCatalog catalog, HelpBox box)
+        private static void RefreshValidation(AchievementDefinitionCatalog catalog, HelpBox box)
         {
             bool valid = catalog.TryValidate(out string error);
             box.text = valid ? string.Empty : error;

@@ -13,9 +13,9 @@ using UnityEngine;
 namespace CrawfisSoftware.UGS.Editor.Achievements
 {
     /// <summary>
-    /// Writes an <see cref="AchievementCatalog"/> to a Remote Config <c>.rc</c> deployment file,
+    /// Writes an <see cref="AchievementDefinitionCatalog"/> to a Remote Config <c>.rc</c> deployment file,
     /// and reads one back.
-    ///    Dependencies: AchievementCatalog, AchievementsRemoteConfigKeys, UnityEditor.FileUtil
+    ///    Dependencies: AchievementDefinitionCatalog, AchievementsRemoteConfigKeys, UnityEditor.FileUtil
     ///    Subscribes: none
     ///    Publishes: none
     /// </summary>
@@ -36,22 +36,22 @@ namespace CrawfisSoftware.UGS.Editor.Achievements
     /// writing. Writing by hand is what gives exact control over key order and indentation, so a
     /// re-export of an unchanged catalog produces no diff.</para>
     /// </remarks>
-    public static class AchievementCatalogExporter
+    public static class AchievementDefinitionExporter
     {
         /// <summary>Menu path of the export command.</summary>
-        public const string ExportMenuPath = "CrawfisSoftware/UGS/Achievements/Export Catalog to Remote Config";
+        public const string ExportMenuPath = "CrawfisSoftware/UGS/Achievements/Export Definitions to Remote Config";
 
         private const string Indent = "  ";
 
         /// <summary>
-        /// Validate the catalog, write it to <see cref="AchievementCatalog.ExportAssetPath"/>,
+        /// Validate the catalog, write it to <see cref="AchievementDefinitionCatalog.ExportAssetPath"/>,
         /// import it and ping it in the Project window.
         /// </summary>
         /// <returns>
         /// False on a blank, whitespace-bearing or duplicate id, or on any IO failure - never true
         /// after a caught exception.
         /// </returns>
-        public static bool TryExport(AchievementCatalog catalog, out string exportedAssetPath, out string error)
+        public static bool TryExport(AchievementDefinitionCatalog catalog, out string exportedAssetPath, out string error)
         {
             exportedAssetPath = null;
 
@@ -248,7 +248,7 @@ namespace CrawfisSoftware.UGS.Editor.Achievements
         [MenuItem(ExportMenuPath)]
         private static void ExportSelected()
         {
-            var catalog = Selection.activeObject as AchievementCatalog;
+            var catalog = Selection.activeObject as AchievementDefinitionCatalog;
             if (catalog == null) return;
 
             if (TryExport(catalog, out string assetPath, out string error))
@@ -258,7 +258,7 @@ namespace CrawfisSoftware.UGS.Editor.Achievements
         }
 
         [MenuItem(ExportMenuPath, isValidateFunction: true)]
-        private static bool ValidateExportSelected() => Selection.activeObject is AchievementCatalog;
+        private static bool ValidateExportSelected() => Selection.activeObject is AchievementDefinitionCatalog;
 
         private static void AppendDefinition(StringBuilder json, AchievementDefinition definition)
         {
