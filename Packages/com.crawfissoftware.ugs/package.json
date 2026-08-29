@@ -23,10 +23,10 @@
   "license": "CC0-1.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/crawfis/CrawfisSoftware.UnityPackages.git"
+    "url": "https://github.com/crawfis/EventDrivenUGS.git"
   },
-  "documentationUrl": "https://github.com/crawfis/CrawfisSoftware.UnityPackages/tree/main/Packages/com.crawfissoftware.ugs#readme",
-  "licensesUrl": "https://github.com/crawfis/CrawfisSoftware.UnityPackages/blob/main/LICENSE.txt",
+  "documentationUrl": "https://github.com/crawfis/EventDrivenUGS/tree/main/Packages/com.crawfissoftware.ugs#readme",
+  "licensesUrl": "https://github.com/crawfis/EventDrivenUGS/blob/main/LICENSE.txt",
   "dependencies": {
     "com.unity.services.core": "1.18.0",
     "com.unity.services.authentication": "3.7.3",

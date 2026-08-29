@@ -1,4 +1,7 @@
-# CrawfisSoftware Unity Packages
+# EventDrivenUGS
+
+A Unity Gaming Services integration a game can talk to without ever naming it - and, because the
+coupling runs only through events, one it can also run *without*.
 
 Three UPM packages in one repository, consumed by git URL with `?path=`.
 
@@ -16,13 +19,18 @@ other in, so every one you use must be listed in your own manifest, along with E
 ```jsonc
 // Packages/manifest.json
 "com.crawfissoftware.eventspublisher": "https://github.com/crawfis/EventsPublisher.git",
-"com.crawfissoftware.contracts": "https://github.com/crawfis/CrawfisSoftware.UnityPackages.git?path=/Packages/com.crawfissoftware.contracts",
-"com.crawfissoftware.common":    "https://github.com/crawfis/CrawfisSoftware.UnityPackages.git?path=/Packages/com.crawfissoftware.common",
-"com.crawfissoftware.ugs":       "https://github.com/crawfis/CrawfisSoftware.UnityPackages.git?path=/Packages/com.crawfissoftware.ugs"
+"com.crawfissoftware.contracts": "https://github.com/crawfis/EventDrivenUGS.git?path=/Packages/com.crawfissoftware.contracts",
+"com.crawfissoftware.common":    "https://github.com/crawfis/EventDrivenUGS.git?path=/Packages/com.crawfissoftware.common",
+"com.crawfissoftware.ugs":       "https://github.com/crawfis/EventDrivenUGS.git?path=/Packages/com.crawfissoftware.ugs"
 ```
 
 The URL grammar is `protocol://host/path.git?path=/subfolder#revision` - `?path=` always precedes
 `#revision`. Pin a revision by appending `#v0.1.0`.
+
+```
+  game events   <->   GameSignals   <->   UGS events
+   (your glue)        (contracts)        (ugs package)
+```
 
 ## Why one repository
 

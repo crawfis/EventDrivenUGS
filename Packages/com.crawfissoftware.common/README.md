@@ -40,7 +40,7 @@ add both lines yourself:
 ```jsonc
 // Packages/manifest.json
 "com.crawfissoftware.eventspublisher": "https://github.com/crawfis/EventsPublisher.git",
-"com.crawfissoftware.common": "https://github.com/crawfis/CrawfisSoftware.UnityPackages.git?path=/Packages/com.crawfissoftware.common"
+"com.crawfissoftware.common": "https://github.com/crawfis/EventDrivenUGS.git?path=/Packages/com.crawfissoftware.common"
 ```
 
 Assembly: `CrawfisSoftware.Common` (`autoReferenced: true`).

@@ -35,9 +35,9 @@ package cannot pull its three siblings in for you - list all four yourself:
 ```jsonc
 // Packages/manifest.json
 "com.crawfissoftware.eventspublisher": "https://github.com/crawfis/EventsPublisher.git",
-"com.crawfissoftware.contracts": "https://github.com/crawfis/CrawfisSoftware.UnityPackages.git?path=/Packages/com.crawfissoftware.contracts",
-"com.crawfissoftware.common":    "https://github.com/crawfis/CrawfisSoftware.UnityPackages.git?path=/Packages/com.crawfissoftware.common",
-"com.crawfissoftware.ugs":       "https://github.com/crawfis/CrawfisSoftware.UnityPackages.git?path=/Packages/com.crawfissoftware.ugs"
+"com.crawfissoftware.contracts": "https://github.com/crawfis/EventDrivenUGS.git?path=/Packages/com.crawfissoftware.contracts",
+"com.crawfissoftware.common":    "https://github.com/crawfis/EventDrivenUGS.git?path=/Packages/com.crawfissoftware.common",
+"com.crawfissoftware.ugs":       "https://github.com/crawfis/EventDrivenUGS.git?path=/Packages/com.crawfissoftware.ugs"
 ```
 
 Everything else - Core, Authentication, Cloud Save, Cloud Code, Leaderboards, Remote Config,

@@ -37,7 +37,7 @@ it cannot be listed in this package's `dependencies` - you must add both lines y
 ```jsonc
 // Packages/manifest.json
 "com.crawfissoftware.eventspublisher": "https://github.com/crawfis/EventsPublisher.git",
-"com.crawfissoftware.contracts": "https://github.com/crawfis/CrawfisSoftware.UnityPackages.git?path=/Packages/com.crawfissoftware.contracts"
+"com.crawfissoftware.contracts": "https://github.com/crawfis/EventDrivenUGS.git?path=/Packages/com.crawfissoftware.contracts"
 ```
 
 Assembly: `CrawfisSoftware.Contracts` (`autoReferenced: true`, so code with no asmdef of its own
