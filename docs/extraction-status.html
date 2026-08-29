@@ -299,7 +299,22 @@ finder missed, one attacking its impact - and kept only on a majority. 110 findi
   player writes to Cloud Save, which is exactly incompatible with the default backend.</p>
 </div>
 
-<div class="card warn">
+<div class="card good">
+  <p><span class="tag t-done">closed</span> &nbsp;<strong>Scenes and prefabs.</strong> Built, and
+  driven through Unity's own editor API in batch mode rather than by editing YAML - so Unity wrote
+  the serialization and Unity checked the result. <code>Samples~/UGS-Scenes</code> holds eight
+  scenes and three prefabs, and every reference in them resolves against the three packages alone:
+  verified by opening all eleven in a project containing nothing else and requiring zero unresolved
+  references.</p>
+  <p>Unity's own count of what was broken was <strong>30 references, not the 13</strong> a by-hand
+  GUID count gives, because a prefab instance in a scene carries its own overrides and each dangling
+  override is a separate site. Fixing the prefab assets alone would have left every scene instance
+  broken. The pipeline that fixed them is
+  <a href="samples-handoff.md">docs/samples-handoff.md</a>, and the three scripts are in
+  <code>Tools~/SamplesBuilder/</code> so the sample can be rebuilt when the source scenes change.</p>
+</div>
+
+<div class="card warn" hidden>
   <p><span class="tag t-you">yours</span> &nbsp;<strong>Scenes and prefabs.</strong> Scene and prefab
   YAML is your work, not mine. The 8 scenes, both achievement prefabs and the UI assets still need to
   move into <code>Samples~/UGS-Scenes/</code> and be rewired off the deleted Blocks GUIDs &mdash; the

@@ -28,6 +28,13 @@
   "documentationUrl": "https://github.com/crawfis/EventDrivenUGS/tree/main/Packages/com.crawfissoftware.ugs#readme",
   "changelogUrl": "https://github.com/crawfis/EventDrivenUGS/blob/main/Packages/com.crawfissoftware.ugs/CHANGELOG.md",
   "licensesUrl": "https://github.com/crawfis/EventDrivenUGS/blob/main/LICENSE.txt",
+  "samples": [
+    {
+      "displayName": "UGS Boot Scenes",
+      "description": "The additive boot scenes for initialization, remote config, authentication, achievements and leaderboards, plus the achievement and leaderboard panel prefabs. Add the imported scenes to your build profile - they load one another by name.",
+      "path": "Samples~/UGS-Scenes"
+    }
+  ],
   "dependencies": {
     "com.unity.services.core": "1.18.0",
     "com.unity.services.authentication": "3.7.3",

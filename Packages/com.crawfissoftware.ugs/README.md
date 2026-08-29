@@ -137,12 +137,14 @@ Two things the exporter does deliberately:
 
 ## Scenes
 
-**The scenes are not in this release.** They are meant to ship as a Package Manager *sample* -
-a sample is copied into your `Assets/` with its `.meta` files, so GUIDs survive and the scenes stay
-editable - but the sample is not built yet, and a `samples` entry pointing at a folder that does not
-exist gives you an Import button that silently copies nothing. It will be declared when the folder
-is there. The worked list of what goes in it, and every GUID that has to be rewired on the way, is
-in [docs/samples-handoff.md](../../docs/samples-handoff.md).
+The scenes ship as a Package Manager **sample** - a sample is copied into your `Assets/` with its
+`.meta` files, so GUIDs survive and the scenes stay editable. Import "UGS Boot Scenes" from the
+package's page in Package Manager, then read the README that comes with it.
+
+Every reference in those eight scenes and three prefabs resolves against these packages alone -
+verified by opening all eleven in a project containing nothing else and requiring Unity to report
+zero unresolved references. How they were rebuilt off the vendored assets they used to depend on is
+[docs/samples-handoff.md](../../docs/samples-handoff.md).
 
 **The scenes load one another by name, so those names are public contract**, and the imported
 scenes must be added to your build profile - a scene loaded by name that is not in the build list
