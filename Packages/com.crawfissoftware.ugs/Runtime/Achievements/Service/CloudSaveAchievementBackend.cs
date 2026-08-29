@@ -32,13 +32,13 @@ namespace CrawfisSoftware.UGS.Achievements
         /// Cloud Save player key holding the record array.
         /// <b>Wire contract</b> - changing it orphans every existing player's progress.
         /// </summary>
-        public const string CloudSaveKey = "achievements";
+        public const string CloudSaveKey = AchievementsRemoteConfigKeys.CloudSaveAchievementsKey;
 
         /// <summary>
         /// Remote Config key holding the definition array.
         /// <b>Wire contract</b> - must match the deployed Remote Config entry.
         /// </summary>
-        public const string RemoteConfigKey = "achievements";
+        public const string RemoteConfigKey = AchievementsRemoteConfigKeys.AchievementsKey;
 
         private struct EmptyAttributes
         {

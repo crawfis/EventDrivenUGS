@@ -19,12 +19,13 @@ scenes, not editing the other side.
 | Area | What it does |
 |------|--------------|
 | `Events/` | `UGS_EventsEnum`, the auto-event flow, and `GameSignalsUGSBridge` - the only place UGS events and `GameSignals` are named together. |
-| `Initialization/` | `GameManagerUGS`, `PlayerAuthenticationManager`, `UGS_State`, connectivity handling. |
+| `Initialization/` | `PlayerAuthenticationManager`, `UGS_State`, connectivity handling. |
 | `Authentication/` | `PlayerSignIn` (the modal element) and `PlayerSignInController`. Anonymous, Unity Player Account, or username/password. |
 | `RemoteConfig/` | Config fetch plus typed views over it: game balance, feature flags, campaign events, difficulty. |
-| `Leaderboard/` | `LeaderboardQuery` (reads) and `LeaderboardPlayerController` (score submission). |
+| `Leaderboard/` | `LeaderboardQuery` (reads), `LeaderboardPanel` (the display), `LeaderboardPlayerController` (score submission). |
 | `Achievements/` | Model, service and UI. Two interchangeable backends - see below. |
 | `UI/` | The runtime theme, the panel settings, and the achievement icons. |
+| `Editor/` | `AchievementCatalog` and its exporter - authoring only, excluded from player builds. |
 
 ## Install
 
@@ -83,6 +84,28 @@ Two things there are contracts that fail **silently** if broken:
   (the fallback). Supply your own through the `m_Icons` list on the achievements prefab; they merge
   with the built-in set rather than replacing it.
 
+### Authoring them
+
+Create an **AchievementCatalog** (`Assets > Create > CrawfisSoftware > UGS > Achievement Catalog`)
+in your own project, ideally under an `Editor/` folder so it stays out of player builds. Edit the
+definitions in the Inspector, then press **Export to Remote Config (.rc)**. Point the Deployment
+window at the written file and deploy it.
+
+The catalog is authoring data only - nothing loads it at runtime, and it never ships. Definitions
+reach the game exclusively from Remote Config, which is why the export step is the one that
+matters.
+
+Two things the exporter does deliberately:
+
+- It writes **`.rc`**, the extension `com.unity.remote-config` already claims, so the Deployment
+  window lists the file without this package registering an importer - and therefore without an
+  extension for two packages to fight over. The envelope is identical to the one the vendored
+  stack wrote under its own `.ach` extension, so **Import from JSON...** reads an existing `.ach`
+  unchanged.
+- It **fails loudly**. Blank, whitespace-bearing and duplicate ids are reported before anything is
+  written, and a failed write reports the failure rather than clearing the dirty flag and claiming
+  success.
+
 ## Scenes
 
 The scenes ship as a **sample**, not in `Runtime/` - Package Manager copies a sample into your
@@ -92,6 +115,10 @@ Scenes" from the package's page in Package Manager.
 **The scenes load one another by name, so those names are public contract**, and the imported
 scenes must be added to your build profile - a scene loaded by name that is not in the build list
 fails at runtime, not at import.
+
+`LeaderboardPanel` and the achievement panels are components, not prefabs: their serialized
+`PanelRenderer` and `StyleSheet[]` have to be wired in a scene or prefab, which is what the sample
+scenes carry.
 
 `0_BootStrap` is deliberately not included. A bootstrap composes an *application* - it owns game
 state, quit handling and scene teardown - and that is the project's job, not a package's.

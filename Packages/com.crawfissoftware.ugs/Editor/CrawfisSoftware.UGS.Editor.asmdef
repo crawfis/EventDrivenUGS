@@ -1,0 +1,11 @@
+{
+    "name": "CrawfisSoftware.UGS.Editor",
+    "rootNamespace": "CrawfisSoftware.UGS.Editor",
+    "references": [
+        "CrawfisSoftware.UGS"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "autoReferenced": true
+}
