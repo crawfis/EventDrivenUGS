@@ -134,8 +134,9 @@ a single root cause.</p>
   </tr>
   <tr>
     <td><code>com.crawfissoftware.ugs</code></td>
-    <td>29 staged scripts + 21 original replacements; theme, icons, sign-in UI</td>
-    <td><span class="tag t-todo">code done, scenes pending</span></td>
+    <td>29 staged scripts + 21 original replacements; the leaderboard display and the
+      achievements authoring assembly; theme, icons, sign-in UI</td>
+    <td><span class="tag t-todo">code done and compiling, scenes pending</span></td>
   </tr>
 </table>
 </div>
@@ -203,38 +204,84 @@ carries a comment at its declaration.</p>
 
 <h2>What remains</h2>
 
-<div class="card warn">
-  <p><span class="tag t-you">yours</span> &nbsp;<strong>Scenes, prefabs and the leaderboard panel.</strong>
-  Scene and prefab YAML is your work, not mine. The 8 scenes, both achievement prefabs and the UI
-  assets still need to move into <code>Samples~/UGS-Scenes/</code> and be rewired off the deleted
-  Blocks GUIDs &mdash; the icon list on the achievements prefab, the sign-in panel settings, and the
-  leaderboard prefab instance in <code>Leaderboards.unity</code>.</p>
-  <p>The leaderboard <em>display</em> (<code>LeaderboardPanel</code> &rarr; <code>TabView</code> &rarr;
-  <code>ListView</code> &rarr; row) is specified in the design spec but not built, because it is
-  prefab-shaped. <code>LeaderboardQuery</code> &mdash; the part that is code &mdash; is done, and score
-  submission never used Blocks at all.</p>
+<div class="card good">
+  <p><span class="tag t-done">closed</span> &nbsp;<strong>Compile verification.</strong> All three
+  packages now build under Unity 6000.5.7f1 with <strong>zero errors and zero warnings</strong>, for
+  the editor target and for a player build &mdash; the latter matters because an editor-only compile
+  does not define away <code>UNITY_EDITOR</code> and does not run Unity's serialization analyser.</p>
+  <p>The method: a throwaway host project holding nothing but
+  <code>ProjectSettings/ProjectVersion.txt</code> and a <code>Packages/manifest.json</code> that
+  pulls EventsPublisher by git URL and the three packages by absolute <code>file:</code> path, then
+  <code>Unity.exe -batchmode -nographics -quit -projectPath &lt;host&gt; -logFile &lt;log&gt;
+  -disable-assembly-updater</code>, plus <code>-executeMethod</code> on an editor script calling
+  <code>BuildPipeline.BuildPlayer</code>. Local <code>file:</code> packages are mutable, so Unity
+  writes any missing <code>.meta</code> straight back into the repo.</p>
+  <p>What it found, in four defects: a <code>using</code> missing for the namespace that declares
+  <code>RequestFailedException</code>; a Cloud Save delete bound to the deprecated overload, because
+  the replacement has no default for its options parameter; a public
+  <code>VisualElement</code> field Unity tried and failed to serialize; and
+  <code>GameManagerUGS</code>, a Match3-sample leftover referenced by nothing in either repo, whose
+  only signal is already published with an identical payload by a class that <em>is</em>
+  scene-wired.</p>
+</div>
+
+<div class="card good">
+  <p><span class="tag t-done">closed</span> &nbsp;<strong>The leaderboard display.</strong> Built:
+  <code>LeaderboardPanel</code> &rarr; <code>LeaderboardView</code> &rarr;
+  <code>LeaderboardList</code> &rarr; <code>LeaderboardRow</code>. Two departures from the design
+  spec, both because the spec predates the theme that actually shipped: the tabs are two
+  <code>Toggle</code>s rather than a <code>TabView</code>, because
+  <code>UgsComponents.uss</code> styles <code>.ugs-tab-button .unity-toggle__checkmark</code> and a
+  TabView would have quietly lost every tab rule in the sheet; and the panel-level classes the spec
+  named had no rules at all, so they were added to the stylesheet and to
+  <code>UgsUiTheme</code> together.</p>
+  <p>Three refresh paths overlap &mdash; Start, <code>LeaderboardOpened</code> and
+  <code>ScoreUpdated</code> &mdash; so each read carries a generation number and a superseded
+  completion is discarded rather than allowed to overwrite a newer one.</p>
+</div>
+
+<div class="card good">
+  <p><span class="tag t-done">closed</span> &nbsp;<strong>The <code>.ach</code> importer.</strong>
+  Dropped and replaced, as the survey recommended: <code>AchievementDefinitionCatalog</code> (a
+  ScriptableObject you create in your own project), <code>AchievementDefinitionExporter</code>, and
+  a code-only inspector, in a new editor-only assembly.</p>
+  <p>It exports <code>.rc</code>, not <code>.ach</code>. That distinction is load-bearing:
+  <code>.ach</code> was never a Unity format &mdash; only the vendored ScriptedImporter made it a
+  Deployment item &mdash; so with that importer gone an exported <code>.ach</code> would be a file
+  the Deployment window cannot see. The envelope is identical, so <em>Import from JSON</em> still
+  reads your existing <code>Achievements.ach</code> unchanged.</p>
+  <p>Both measured defects in the code it replaces are fixed by construction: paths resolve through
+  <code>FileUtil.GetPhysicalPath</code>, which handles <code>Packages/</code> as well as
+  <code>Assets/</code>; and a failed write returns false instead of reporting success after
+  catching the exception. Verified by running it, not only compiling it &mdash; 28 checks covering
+  the envelope shape, escaping, a full round trip, the empty case, id validation and path
+  normalisation.</p>
+  <p><code>AchievementsAccessControl.ac</code> still should <em>not</em> travel &mdash; it denies
+  player writes to Cloud Save, which is exactly incompatible with the default backend.</p>
 </div>
 
 <div class="card warn">
-  <p><span class="tag t-todo">open</span> &nbsp;<strong>Compile verification.</strong> Nothing here has
-  been through a Unity compile. The replacements are written against documented SDK shapes, but the
-  Cloud Save and Leaderboards call sites in particular deserve a real build before you trust them.
-  This is the single highest-value next step.</p>
-</div>
-
-<div class="card warn">
-  <p><span class="tag t-todo">open</span> &nbsp;<strong>The <code>.ach</code> importer.</strong> Not
-  addressed. It is Asset Store editor code that currently owns <em>your</em> achievement definitions.
-  The recommendation from the survey is to drop it: definitions are read at runtime from Remote
-  Config, so the authoring format is an editor-only concern and a ScriptableObject plus a small
-  exporter would be strictly better in a package. <code>AchievementsAccessControl.ac</code> should
-  <em>not</em> travel &mdash; it denies player writes to Cloud Save, which is exactly incompatible with
-  the default backend.</p>
+  <p><span class="tag t-you">yours</span> &nbsp;<strong>Scenes and prefabs.</strong> Scene and prefab
+  YAML is your work, not mine. The 8 scenes, both achievement prefabs and the UI assets still need to
+  move into <code>Samples~/UGS-Scenes/</code> and be rewired off the deleted Blocks GUIDs &mdash; the
+  icon list on the achievements prefab, the sign-in panel settings, and the leaderboard prefab
+  instance in <code>Leaderboards.unity</code>.</p>
+  <p>The leaderboard panel is now code, but it is a <em>component</em>: its serialized
+  <code>PanelRenderer</code> and <code>StyleSheet[]</code> still have to be wired by hand, which is
+  the same kind of work.</p>
 </div>
 
 <div class="card">
   <p><span class="tag t-todo">open</span> &nbsp;<strong>The GitHub repo does not exist yet.</strong>
-  Everything is local, in four commits. Nothing has been pushed.</p>
+  Everything is local. Nothing has been pushed.</p>
+</div>
+
+<div class="card warn">
+  <p><span class="tag t-todo">open</span> &nbsp;<strong>Nothing has been <em>run</em> against live
+  services.</strong> Compiling is necessary, not sufficient. The Cloud Save, Cloud Code and
+  Leaderboards call sites have been checked against the SDK sources on disk and now compile against
+  them, but no request has ever been made. That is what a linked project and a play session buy
+  that a build cannot.</p>
 </div>
 
 <div class="card good">
