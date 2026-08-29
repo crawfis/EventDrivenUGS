@@ -62,7 +62,7 @@
 <div class="wrap">
 
 <h1>Extracting <code>Assets/UGS</code> into a UPM package</h1>
-<p class="sub">Status of <code>crawfis/EventDrivenUGS</code> &mdash; three packages, compiling clean, not yet pushed.</p>
+<p class="sub">Status of <code>crawfis/EventDrivenUGS</code> &mdash; three packages, compiling clean, audited and published.</p>
 
 <h2>The two blockers, and why they were one</h2>
 
@@ -201,6 +201,45 @@ carries a comment at its declaration.</p>
   UXML tag resolved by string at import. Rename the class or namespace and the modal renders
   empty.</li>
 </ul>
+
+<h2>The audit</h2>
+
+<p>After the code was complete, the whole extraction was surveyed again across eleven dimensions
+against the real SDK sources on disk. Every finding was then attacked by three independent
+skeptics with different lenses - one checking it against the SDK, one hunting for the guard the
+finder missed, one attacking its impact - and kept only on a majority. 110 findings, 45 confirmed,
+45 refuted, plus 11 more from a completeness pass asking what the survey had missed.</p>
+
+<p>All of them are applied. The four that mattered most:</p>
+
+<div class="card bad">
+  <p><strong>Cloud Save achievements were reading and writing the wrong access class.</strong> The
+  replacement used <code>Default</code>; the code it replaced used <code>Public</code>. Those are
+  separate server-side stores on separate endpoints, so the backend could not have seen a single
+  record an existing player already had - every achievement would have silently reappeared locked.
+  The read-modify-write also carried no write lock, so two unlocks landing together lost one.</p>
+</div>
+
+<div class="card bad">
+  <p><strong>A failed score submission wedged the game.</strong> The failure path never cleared the
+  in-flight flag, so the close coroutine parked on its <code>WaitUntil</code> forever,
+  <code>LeaderboardClosing</code> was never published, and the player never got back to the
+  menu.</p>
+</div>
+
+<div class="card bad">
+  <p><strong>The achievements UI went deaf after one panel reload,</strong> and the catalogue was
+  never loaded at all. Both elements subscribed in their constructors and unsubscribed on detach
+  with nothing to re-subscribe - and a PanelRenderer rebuilds its tree on every reload. Meanwhile
+  the catalogue's only loader ran at scene Awake, long before sign-in, so every unlock reached the
+  backend and announced nothing.</p>
+</div>
+
+<div class="card bad">
+  <p><strong>The access token was written to Player.log on every sign-in.</strong> It is a bearer
+  credential and the logger carries no build guard, so in a release build anyone with the log file
+  could act as that player until it expired.</p>
+</div>
 
 <h2>What remains</h2>
 
