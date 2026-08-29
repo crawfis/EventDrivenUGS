@@ -62,9 +62,21 @@ namespace CrawfisSoftware.UGS.UI
             public const string ToastOffscreen = "ugs-achievement-toast--offscreen";
         }
 
-        /// <summary>Leaderboard tab bar and row classes. See UgsComponents.uss.</summary>
+        /// <summary>Leaderboard panel, tab bar and row classes. See UgsComponents.uss.</summary>
         public static class Leaderboards
         {
+            /// <summary>The whole leaderboard element: title plus card.</summary>
+            public const string Root = "ugs-leaderboard";
+
+            public const string Title = "ugs-leaderboard__title";
+            public const string Card = "ugs-leaderboard__card";
+
+            /// <summary>One list: the scrolling view plus the message shown in its place.</summary>
+            public const string List = "ugs-leaderboard-list";
+
+            public const string ListView = "ugs-leaderboard-list__view";
+            public const string ListMessage = "ugs-leaderboard-list__message";
+
             public const string TabBar = "ugs-tab-bar";
             public const string TabButton = "ugs-tab-button";
             public const string TabButtonUnderline = "ugs-tab-button__underline";

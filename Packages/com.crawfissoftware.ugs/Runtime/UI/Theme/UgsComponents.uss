@@ -171,3 +171,49 @@
 .ugs-tab-button__underline {
     display: none;
 }
+
+/* ---------- leaderboard panel ---------- */
+
+.ugs-leaderboard {
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    padding: var(--ugs-space-6);
+}
+
+.ugs-leaderboard__title {
+    font-size: var(--ugs-text-lg);
+    letter-spacing: var(--ugs-tracking-wide);
+    -unity-font-style: bold;
+    margin-bottom: var(--ugs-space-4);
+}
+
+.ugs-leaderboard__card {
+    background-color: var(--ugs-color-surface-raised);
+    border-width: var(--ugs-border);
+    border-color: var(--ugs-color-line);
+    border-radius: var(--ugs-radius-md);
+    padding: var(--ugs-space-4);
+    max-height: 80%;
+    flex-shrink: 1;
+}
+
+/* Both the list and the message it swaps with live here, so the card does not resize as a
+   fetch completes - a card that jumps when the scores land reads as a glitch. */
+.ugs-leaderboard-list {
+    min-height: 160px;
+    flex-shrink: 1;
+}
+
+.ugs-leaderboard-list__view {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.ugs-leaderboard-list__message {
+    color: var(--ugs-color-text-muted);
+    font-size: var(--ugs-text-sm);
+    -unity-text-align: middle-center;
+    padding: var(--ugs-space-6);
+    white-space: normal;
+}
