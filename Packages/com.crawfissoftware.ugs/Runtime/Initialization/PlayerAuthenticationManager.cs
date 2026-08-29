@@ -168,12 +168,18 @@ namespace CrawfisSoftware.UGS
             {
                 Logger.LogWarning($"💡 Authentication failed - if testing, try enabling 'Delete Account On Start' in GameInitializer to reset state {ex.Message}");
                 UGSBus.Publish(UGS_EventsEnum.PlayerSignInFailed, this, null);
+                return;
             }
             catch (RequestFailedException ex)
             {
                 Logger.LogWarning($"Network error during sign-in: {ex.Message}");
                 UGSBus.Publish(UGS_EventsEnum.PlayerSignInFailed, this, null);
+                return;
             }
+            // Reached only when SignInAnonymouslyAsync completed without throwing and the player still
+            // is not authorized. The catches return so that a caught failure publishes exactly once -
+            // PlayerSignInFailed auto-chains back to PlayerSigningIn, and a second pass through that
+            // chain double-fires every subscriber that is not idempotent.
             UGSBus.Publish(UGS_EventsEnum.PlayerSignInFailed, this, null);
         }
 
@@ -188,13 +194,24 @@ namespace CrawfisSoftware.UGS
             Logger.LogDemo($"{k_KeyEmoji} Session expired! You'll need to sign in again when possible");
         }
         
+        /// <summary>
+        /// Logs the identity of the player who just authenticated.
+        /// </summary>
+        /// <remarks>
+        /// The access token value is deliberately never logged, only whether one was obtained. It is a
+        /// bearer credential, and Logger.Log carries no [Conditional] attribute or build guard, so
+        /// anything written here lands in Player.log on the end user's disk in a release build - whoever
+        /// reads that file can act as the player until the token expires. The SDK exposes no non-secret
+        /// expiry timestamp, so IsExpired stands in as the "still usable" fact.
+        /// </remarks>
         private void LogPlayerInfo()
         {
             var playerId = AuthenticationService.Instance.PlayerId;
-            var accessToken = AuthenticationService.Instance.AccessToken;
+            bool hasAccessToken = !string.IsNullOrEmpty(AuthenticationService.Instance.AccessToken);
             Logger.Log($"{k_KeyEmoji} Authentication successful!" +
                 $"\n{k_KeyEmoji} PlayerID: {playerId}" +
-                $"\n{k_KeyEmoji} Token: {accessToken}");
+                $"\n{k_KeyEmoji} Access token: {(hasAccessToken ? "obtained" : "none")}" +
+                $", expired: {AuthenticationService.Instance.IsExpired}");
         }
     }
 }

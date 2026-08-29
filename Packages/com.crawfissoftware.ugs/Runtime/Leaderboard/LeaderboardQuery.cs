@@ -132,8 +132,11 @@ namespace CrawfisSoftware.UGS.Leaderboard
                     Debug.LogError($"{nameof(LeaderboardQuery)}: '{leaderboardId}' - {e.Reason}. {e.Message}");
                     break;
 
-                // Ordinary on a first run: the player has not scored yet.
+                // Ordinary on a first run: the player has not scored yet. ScoreSubmissionRequired is
+                // the bucketed-board form of the same condition - the service assigns no bucket until
+                // the player has submitted once, so a read before that is not a misconfiguration.
                 case LeaderboardsExceptionReason.EntryNotFound:
+                case LeaderboardsExceptionReason.ScoreSubmissionRequired:
                     Debug.Log($"{nameof(LeaderboardQuery)}: no entry yet on '{leaderboardId}'.");
                     break;
 

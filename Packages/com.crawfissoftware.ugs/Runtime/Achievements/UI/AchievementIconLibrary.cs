@@ -33,7 +33,8 @@ namespace CrawfisSoftware.UGS.Achievements.UI
 
         /// <summary>
         /// Add icons to the shared set. Null entries are skipped; a repeated name keeps the first
-        /// texture registered, so a late component cannot displace the panel's artwork.
+        /// texture registered, so a late component cannot displace the panel's artwork. A name whose
+        /// texture has since been destroyed is replaced rather than kept.
         /// </summary>
         public static void Register(IEnumerable<Texture2D> icons)
         {
@@ -41,7 +42,9 @@ namespace CrawfisSoftware.UGS.Achievements.UI
             foreach (var icon in icons)
             {
                 if (icon == null || string.IsNullOrEmpty(icon.name)) continue;
-                if (_icons.ContainsKey(icon.name)) continue;
+                // Unity's == operator reports a destroyed texture as null, which is how an entry
+                // left over from a previous play session is told apart from a live one.
+                if (_icons.TryGetValue(icon.name, out var existing) && existing != null) continue;
                 _icons[icon.name] = icon;
             }
         }
@@ -66,5 +69,12 @@ namespace CrawfisSoftware.UGS.Achievements.UI
 
         /// <summary>Drop every registered icon. Intended for tests and domain reload.</summary>
         public static void Clear() => _icons.Clear();
+
+        // A static dictionary outlives play mode when Enter Play Mode Options disable the domain
+        // reload, while the textures it holds do not - the second Play would otherwise keep serving
+        // the destroyed textures of the first, including the fallback, and every card and toast
+        // would render with no icon.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics() => Clear();
     }
 }

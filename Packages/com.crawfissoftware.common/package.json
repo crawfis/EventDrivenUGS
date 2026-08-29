@@ -23,6 +23,9 @@
     "url": "https://github.com/crawfis/EventDrivenUGS.git"
   },
   "documentationUrl": "https://github.com/crawfis/EventDrivenUGS/tree/main/Packages/com.crawfissoftware.common#readme",
+  "changelogUrl": "https://github.com/crawfis/EventDrivenUGS/blob/main/Packages/com.crawfissoftware.common/CHANGELOG.md",
   "licensesUrl": "https://github.com/crawfis/EventDrivenUGS/blob/main/LICENSE.txt",
-  "dependencies": {}
+  "dependencies": {
+    "com.unity.modules.imageconversion": "1.0.0"
+  }
 }

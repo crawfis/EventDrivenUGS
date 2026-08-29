@@ -26,6 +26,7 @@
     "url": "https://github.com/crawfis/EventDrivenUGS.git"
   },
   "documentationUrl": "https://github.com/crawfis/EventDrivenUGS/tree/main/Packages/com.crawfissoftware.ugs#readme",
+  "changelogUrl": "https://github.com/crawfis/EventDrivenUGS/blob/main/Packages/com.crawfissoftware.ugs/CHANGELOG.md",
   "licensesUrl": "https://github.com/crawfis/EventDrivenUGS/blob/main/LICENSE.txt",
   "dependencies": {
     "com.unity.services.core": "1.18.0",
@@ -33,6 +34,7 @@
     "com.unity.services.cloudsave": "3.4.1",
     "com.unity.services.cloudcode": "2.10.4",
     "com.unity.services.leaderboards": "2.3.4",
+    "com.unity.remote-config-runtime": "4.0.4",
     "com.unity.remote-config": "4.2.5",
     "com.unity.nuget.newtonsoft-json": "3.2.2",
     "com.unity.modules.uielements": "1.0.0"

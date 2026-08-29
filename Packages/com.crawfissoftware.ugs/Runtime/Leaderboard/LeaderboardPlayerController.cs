@@ -39,11 +39,11 @@ namespace CrawfisSoftware.UGS.Leaderboard
             // with a message naming what actually arrived - the previous cast assumed float and
             // threw from inside the handler on null or on any other numeric type, which took the
             // submission down without ever reporting a failure.
-            if (!TryReadScore(data, out long score))
+            if (!TryReadScore(data, out double score))
             {
                 Debug.LogWarning(
                     $"{nameof(LeaderboardPlayerController)}: ignoring {UGS_EventsEnum.ScoreUpdating} - " +
-                    $"expected a number, got {(data == null ? "null" : data.GetType().Name)}.");
+                    $"expected a finite number, got {(data == null ? "null" : $"{data.GetType().Name} {data}")}.");
                 UGSBus.Publish(UGS_EventsEnum.ScoreFailedToUpdate, this, LeaderboardId);
                 return;
             }
@@ -52,19 +52,26 @@ namespace CrawfisSoftware.UGS.Leaderboard
             var _ = HandleScoreUpload(LeaderboardId, score);
         }
 
-        private static bool TryReadScore(object data, out long score)
+        /// <remarks>The score stays a double all the way to the SDK, whose AddPlayerScoreAsync
+        /// parameter is already a double. Narrowing it to a whole number here would throw away the
+        /// fractional part of any score that is not a count of whole units - a lap time, an accuracy
+        /// percentage - and the payload contract does not let this layer assume which it is.
+        /// NaN and the infinities are refused rather than accepted: a cast of a non-finite value to
+        /// an integer type is unspecified, so they would reach the service as long.MinValue and take
+        /// a real rank.</remarks>
+        private static bool TryReadScore(object data, out double score)
         {
             switch (data)
             {
-                case float f: score = (long)f; return true;
-                case double d: score = (long)d; return true;
+                case float f when float.IsFinite(f): score = f; return true;
+                case double d when double.IsFinite(d): score = d; return true;
                 case int i: score = i; return true;
                 case long l: score = l; return true;
                 default: score = 0; return false;
             }
         }
 
-        private async Task HandleScoreUpload(string leaderboardId, long score)
+        private async Task HandleScoreUpload(string leaderboardId, double score)
         {
             try
             {
@@ -83,7 +90,7 @@ namespace CrawfisSoftware.UGS.Leaderboard
             }
         }
 
-        public async Task<LeaderboardEntry> AddPlayerScore(string leaderboardId, long score)
+        public async Task<LeaderboardEntry> AddPlayerScore(string leaderboardId, double score)
         {
             try
             {

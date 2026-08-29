@@ -45,15 +45,13 @@ namespace CrawfisSoftware.UGS.Events
     /// [AUTO] AchievementsOpenRequested -> AchievementsOpening
     /// [Published] AchievementClaimRequested -> AchievementClaiming -> AchievementClaimed
     /// [AUTO] AchievementsCloseRequested -> AchievementsClosing -> AchievementsClosed
-    /// [AUTO] AchievementsClosed -> RewardAdWatching -> RewardAdWatched
-    /// [AUTO] RewardAdWatched -> PlayerAuthenticating (loop back to main menu)
+    /// [AUTO] AchievementsClosed -> PlayerAuthenticating (loop back to main menu)
     ///
     /// ========================================================================================
     /// </summary>
 
     internal class UGSAutoEventFlow : AutoEventFlowBase<UGS_EventsEnum, UGS_EventsEnum>
     {
-        [SerializeField] protected float _delayBetweenEvents = 0f;
         private static readonly (UGS_EventsEnum From, UGS_EventsEnum To)[] ChainTable =
         {
             // --- Initialization / boot ---
@@ -94,10 +92,15 @@ namespace CrawfisSoftware.UGS.Events
             //(UGS_EventsEnum.AchievementsOpening, UGS_EventsEnum.AchievementsOpened),
             (UGS_EventsEnum.AchievementsCloseRequested, UGS_EventsEnum.AchievementsClosing),
             (UGS_EventsEnum.AchievementsClosing, UGS_EventsEnum.AchievementsClosed),
-            (UGS_EventsEnum.AchievementsClosed, UGS_EventsEnum.RewardAdWatching),
-
-            (UGS_EventsEnum.RewardAdWatching, UGS_EventsEnum.RewardAdWatched),
-            (UGS_EventsEnum.RewardAdWatched, UGS_EventsEnum.PlayerAuthenticating), // Loop back for continuous checks
+            // Re-running authentication republishes PlayerAuthenticated, which is what re-announces
+            // ServicesReady to the host and so brings the main menu back after a run. Closing the
+            // last post-game panel is the only trigger for that, so the edge has to start here.
+            // It used to run through RewardAdWatching -> RewardAdWatched, carried over from a build
+            // that had an ads SDK. This package ships none and nothing subscribes to those events,
+            // so the detour asserted the player had watched a rewarded ad that was never shown.
+            // The RewardAd* enum members stay for a host that really integrates ads; nothing in
+            // this package publishes them.
+            (UGS_EventsEnum.AchievementsClosed, UGS_EventsEnum.PlayerAuthenticating),
         };
 
         protected override IReadOnlyList<(UGS_EventsEnum From, UGS_EventsEnum To)> Chains => ChainTable;

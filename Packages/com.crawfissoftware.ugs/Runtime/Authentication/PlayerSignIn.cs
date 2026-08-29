@@ -8,14 +8,18 @@ using Unity.Services.Core;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+using CrawfisSoftware.UGS.Events;
 using CrawfisSoftware.UGS.UI;
+
+using UGSBus = CrawfisSoftware.Events.EventsFor<CrawfisSoftware.UGS.Events.UGS_EventsEnum>;
 
 namespace CrawfisSoftware.UGS.Authentication
 {
     /// <summary>
     /// The sign-in modal: anonymous, Unity Player Account, or username and password.
     ///    Dependencies: Unity.Services.Authentication, Unity.Services.Authentication.PlayerAccounts
-    ///    Subscribes: PlayerAccountService.Instance.SignedIn (SDK callback)
+    ///    Subscribes: PlayerAccountService.Instance.SignedIn, .SignInFailed (SDK callbacks),
+    ///                UGS_EventsEnum.UnityServicesInitialized
     ///    Publishes: none (PlayerAuthenticationManager owns the UGS events)
     /// </summary>
     /// <remarks>
@@ -115,34 +119,63 @@ namespace CrawfisSoftware.UGS.Authentication
 
         private void OnAttach()
         {
-            // Only offer the Unity Player Account route when the service is actually configured;
-            // without a client id it can only ever fail.
-            bool playerAccountsAvailable = false;
-            try
-            {
-                playerAccountsAvailable = PlayerAccountService.Instance != null;
-            }
-            catch (Exception)
-            {
-                playerAccountsAvailable = false;
-            }
-            _unityAccountButton.style.display = playerAccountsAvailable ? DisplayStyle.Flex : DisplayStyle.None;
-
-            if (playerAccountsAvailable)
-                PlayerAccountService.Instance.SignedIn += OnPlayerAccountSignedIn;
+            RefreshPlayerAccountAvailability();
+            UGSBus.Subscribe(UGS_EventsEnum.UnityServicesInitialized, OnUnityServicesInitialized);
         }
 
         private void OnDetach()
         {
+            UGSBus.Unsubscribe(UGS_EventsEnum.UnityServicesInitialized, OnUnityServicesInitialized);
             try
             {
-                if (PlayerAccountService.Instance != null)
-                    PlayerAccountService.Instance.SignedIn -= OnPlayerAccountSignedIn;
+                var service = PlayerAccountService.Instance;
+                service.SignedIn -= OnPlayerAccountSignedIn;
+                service.SignInFailed -= OnPlayerAccountSignInFailed;
             }
             catch (Exception)
             {
                 // Service was never available; nothing to detach from.
             }
+        }
+
+        private void OnUnityServicesInitialized(string eventName, object sender, object data) =>
+            RefreshPlayerAccountAvailability();
+
+        /// <summary>
+        /// Decides whether the Unity Player Account button is usable, and hooks the service's
+        /// callbacks once it is.
+        /// </summary>
+        /// <remarks>
+        /// <para>Only offer the Unity Player Account route when the service is actually configured;
+        /// without a client id it can only ever fail.</para>
+        /// <para>This cannot be decided once at attach. PlayerAccountService.Instance is assigned by a
+        /// package initializer that runs inside UnityServices.InitializeAsync(), and this element can
+        /// attach while that is still in flight - probing then and never again hides the button for the
+        /// life of the panel. Re-running on UnityServicesInitialized covers the cold start; the probe
+        /// is idempotent so the two paths cannot double-register the handlers.</para>
+        /// <para>The SDK getter throws rather than returning null until the service is registered, so
+        /// the try/catch is what decides availability - a null test against the property alone can
+        /// never evaluate false.</para>
+        /// </remarks>
+        private void RefreshPlayerAccountAvailability()
+        {
+            IPlayerAccountService service = null;
+            try
+            {
+                service = PlayerAccountService.Instance;
+            }
+            catch (Exception)
+            {
+                service = null;
+            }
+
+            _unityAccountButton.style.display = service != null ? DisplayStyle.Flex : DisplayStyle.None;
+            if (service == null) return;
+
+            service.SignedIn -= OnPlayerAccountSignedIn;
+            service.SignedIn += OnPlayerAccountSignedIn;
+            service.SignInFailed -= OnPlayerAccountSignInFailed;
+            service.SignInFailed += OnPlayerAccountSignInFailed;
         }
 
         private async void OnPlayerAccountSignedIn()
@@ -152,11 +185,49 @@ namespace CrawfisSoftware.UGS.Authentication
                     PlayerAccountService.Instance.AccessToken));
         }
 
+        /// <summary>
+        /// Surfaces a Player Account sign-in failure that the awaited call cannot report.
+        /// </summary>
+        /// <remarks>
+        /// StartSignInAsync hands the authorization code to a token exchange that the SDK does not
+        /// await, so a failure there reaches neither RunAsync's catch blocks nor the console in a form
+        /// the player can see - the modal would just go idle with no error and no sign-in. The busy
+        /// state is deliberately left alone here: RunAsync's finally has already cleared it by the time
+        /// the exchange completes, and clearing it again could re-enable the buttons underneath a
+        /// different attempt that is still in flight.
+        /// </remarks>
+        private void OnPlayerAccountSignInFailed(RequestFailedException exception)
+        {
+            ShowError(exception.Message);
+        }
+
         private async void SignInAnonymously() =>
             await RunAsync(async () => await AuthenticationService.Instance.SignInAnonymouslyAsync());
 
+        /// <summary>
+        /// Signs in through the Unity Player Account, reusing an existing Player Account session when
+        /// there is one.
+        /// </summary>
+        /// <remarks>
+        /// The two sessions come apart routinely: PlayerAuthenticationManager signs out of UGS only
+        /// and nothing signs out of Player Accounts, and a failed SignInWithUnityAsync leaves the
+        /// Player Account authorized on its own. StartSignInAsync throws "Player is already signed in."
+        /// in that state, so without this branch the button dead-ends for the rest of the process,
+        /// telling a player who is demonstrably not signed in that they already are. Mirrors the SDK's
+        /// own UnityPlayerAccountsUIExample. The token exchange cannot be delegated to
+        /// OnPlayerAccountSignedIn because that goes back through RunAsync, which is already busy here.
+        /// </remarks>
         private async void SignInWithUnityAccount() =>
-            await RunAsync(async () => await PlayerAccountService.Instance.StartSignInAsync());
+            await RunAsync(async () =>
+            {
+                if (PlayerAccountService.Instance.IsSignedIn)
+                {
+                    await AuthenticationService.Instance.SignInWithUnityAsync(
+                        PlayerAccountService.Instance.AccessToken);
+                    return;
+                }
+                await PlayerAccountService.Instance.StartSignInAsync();
+            });
 
         private async void SignInWithPassword() =>
             await RunAsync(async () => await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(
