@@ -314,21 +314,6 @@ finder missed, one attacking its impact - and kept only on a majority. 110 findi
   <code>Tools~/SamplesBuilder/</code> so the sample can be rebuilt when the source scenes change.</p>
 </div>
 
-<div class="card warn" hidden>
-  <p><span class="tag t-you">yours</span> &nbsp;<strong>Scenes and prefabs.</strong> Scene and prefab
-  YAML is your work, not mine. The 8 scenes, both achievement prefabs and the UI assets still need to
-  move into <code>Samples~/UGS-Scenes/</code> and be rewired off the deleted Blocks GUIDs &mdash; the
-  icon list on the achievements prefab, the sign-in panel settings, and the leaderboard prefab
-  instance in <code>Leaderboards.unity</code>.</p>
-  <p>The leaderboard panel is now code, but it is a <em>component</em>: its serialized
-  <code>PanelRenderer</code> and <code>StyleSheet[]</code> still have to be wired by hand, which is
-  the same kind of work.</p>
-  <p><strong>The worked list is <a href="samples-handoff.md">docs/samples-handoff.md</a></strong> -
-  the eleven assets to copy, all thirteen dangling GUIDs with their replacements resolved from the
-  package metas, the five scenes carrying a lighting reference into <code>Assets/TempleRun</code>,
-  the field-by-field wiring for the new leaderboard prefab, and what must stay behind and why.</p>
-</div>
-
 <div class="card">
   <p><span class="tag t-todo">open</span> &nbsp;<strong>The GitHub repo does not exist yet.</strong>
   Everything is local. Nothing has been pushed.</p>
