@@ -67,6 +67,11 @@ namespace CrawfisSoftware.UGS.Achievements
         {
             UGSBus.Unsubscribe(UGS_EventsEnum.AchievementsOpening, OnAchievementsOpening);
             UGSBus.Unsubscribe(UGS_EventsEnum.AchievementsClosing, OnAchievementsClosing);
+
+            // The container releases its own subscription when it leaves a panel, but a container
+            // that was built and never attached never gets that event - and the service it holds a
+            // handler on is static, so the leak would outlive every scene.
+            AchievementsContainer?.Dispose();
         }
 
         // The PanelRenderer surfaces its visual tree only through this callback (it has no
@@ -135,10 +140,14 @@ namespace CrawfisSoftware.UGS.Achievements
             _root.Add(AchievementsContainer);
         }
 
+        // Toggle the container, not the panel root. The root holds every element in the panel
+        // document, so hiding it took any other UI the consumer authored in the same panel down
+        // with the achievements grid - and it did nothing at all in external-parent mode, where
+        // _root is never set.
         private void ApplyVisibility()
         {
-            if (_root != null)
-                _root.style.display = _visible ? DisplayStyle.Flex : DisplayStyle.None;
+            if (AchievementsContainer != null)
+                AchievementsContainer.style.display = _visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
     }
 }

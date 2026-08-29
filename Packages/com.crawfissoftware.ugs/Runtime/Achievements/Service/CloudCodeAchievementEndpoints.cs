@@ -23,10 +23,18 @@ namespace CrawfisSoftware.UGS.Achievements
         public string UpdateAchievementProgress;
         public string ResetAllAchievements;
 
-        /// <summary>The endpoint names this package's own sample module publishes.</summary>
+        /// <summary>
+        /// The conventional function names, with <b>no module name</b>.
+        /// </summary>
+        /// <remarks>
+        /// This package ships no Cloud Code module, so there is no honest default for
+        /// <see cref="ModuleName"/> and it is deliberately left null: <see cref="IsComplete"/> then
+        /// fails, and <see cref="CloudCodeAchievementBackend"/> refuses to construct with a message
+        /// naming the thing to configure. A placeholder module name would instead have produced a
+        /// module-not-found error on every call, at runtime, far from the cause.
+        /// </remarks>
         public static CloudCodeAchievementEndpoints Default => new CloudCodeAchievementEndpoints
         {
-            ModuleName = "AchievementsModule",
             GetAchievements = "GetAchievements",
             UnlockAchievement = "UnlockAchievement",
             UpdateAchievementProgress = "UpdateAchievementProgress",

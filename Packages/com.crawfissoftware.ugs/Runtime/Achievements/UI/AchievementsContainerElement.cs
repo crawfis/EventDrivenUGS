@@ -26,6 +26,7 @@ namespace CrawfisSoftware.UGS.Achievements.UI
         private readonly VisualElement _grid;
         private readonly List<AchievementCard> _cards = new List<AchievementCard>();
         private readonly AchievementsService _service;
+        private bool _subscribed;
 
         /// <summary>Whether this panel was built against the server-authoritative backend.</summary>
         public bool UseTrustedClient { get; }
@@ -64,11 +65,32 @@ namespace CrawfisSoftware.UGS.Achievements.UI
             if (isDevelopmentMode)
                 Add(BuildDevelopmentControls());
 
-            _service.Catalog.Changed += OnCatalogChanged;
-            RegisterCallback<DetachFromPanelEvent>(_ => Dispose());
+            // Subscribing is tied to the ATTACH lifecycle, not to the constructor. A PanelRenderer
+            // rebuilds its whole tree on every reload, so this element is detached and re-added -
+            // and an element that only ever unsubscribes is deaf from the first reload onward.
+            RegisterCallback<AttachToPanelEvent>(_ => Subscribe());
+            RegisterCallback<DetachFromPanelEvent>(_ => Unsubscribe());
 
             OnCatalogChanged();
             _service.LoadAsync();
+        }
+
+        private void Subscribe()
+        {
+            if (_subscribed) return;
+            _service.Catalog.Changed += OnCatalogChanged;
+            _subscribed = true;
+
+            // Repaint whatever the catalogue became while this element was detached; a reload would
+            // otherwise leave the grid showing the state it had before the panel was rebuilt.
+            OnCatalogChanged();
+        }
+
+        private void Unsubscribe()
+        {
+            if (!_subscribed) return;
+            _service.Catalog.Changed -= OnCatalogChanged;
+            _subscribed = false;
         }
 
         private VisualElement BuildDevelopmentControls()
@@ -104,12 +126,13 @@ namespace CrawfisSoftware.UGS.Achievements.UI
         }
 
         /// <summary>
-        /// Drop every subscription this element holds. Called automatically when the element leaves
-        /// its panel; safe to call again.
+        /// Drop every subscription this element holds. Detaching does this too; calling it
+        /// explicitly is for an element that was created but never attached, which would otherwise
+        /// hold a handler on the static service for the life of the process.
         /// </summary>
         public void Dispose()
         {
-            _service.Catalog.Changed -= OnCatalogChanged;
+            Unsubscribe();
             foreach (var card in _cards) card.Unbind();
         }
     }

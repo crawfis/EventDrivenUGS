@@ -65,6 +65,14 @@ namespace CrawfisSoftware.UGS.Achievements
                 m_UiPanel.UnregisterUIReloadCallback(OnUIReload);
         }
 
+        private void OnDestroy()
+        {
+            // The toast releases its own subscription when it leaves a panel, but a toast that was
+            // built and never attached never gets that event - and AchievementsService is static,
+            // so the handler would outlive every scene that ever showed one.
+            AchievementsNotification?.Dispose();
+        }
+
         // The PanelRenderer surfaces its visual tree only through this callback, and a reload
         // rebuilds the tree - so the notification element is re-parented on every callback.
         private void OnUIReload(PanelRenderer renderer, VisualElement root)

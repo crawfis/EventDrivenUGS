@@ -13,7 +13,7 @@ namespace CrawfisSoftware.UGS.Achievements
     /// The one place achievement state is held and mutated. Owns the catalogue, picks a backend,
     /// and reports every outcome on the UGS event bus.
     ///    Dependencies: IAchievementBackend, Unity.Services.Authentication
-    ///    Subscribes: none
+    ///    Subscribes: UGS_EventsEnum.PlayerAuthenticated
     ///    Publishes: AchievementClaiming, AchievementClaimed, AchievementClaimFailed,
     ///               AchievementUnlocked, AchievementProgressUpdated
     /// </summary>
@@ -33,8 +33,20 @@ namespace CrawfisSoftware.UGS.Achievements
         public static AchievementsService Instance => _instance ??= new AchievementsService();
 
         private IAchievementBackend _backend;
+        private bool _backendAssigned;
         private bool _useTrustedClient;
-        private bool _loading;
+        private Task _loadTask;
+
+        private AchievementsService()
+        {
+            // The catalogue cannot be fetched before there is a player, and the views are built at
+            // scene Awake - long before sign-in completes. Without this the catalogue stays empty,
+            // every Catalog.Find returns null, and an unlock persists to the backend while
+            // announcing nothing at all.
+            UGSBus.Subscribe(UGS_EventsEnum.PlayerAuthenticated, OnPlayerAuthenticated);
+        }
+
+        private void OnPlayerAuthenticated(string eventName, object sender, object data) => LoadAsync();
 
         /// <summary>Everything currently known. Rebuilt by <see cref="LoadAsync"/>.</summary>
         public AchievementCatalog Catalog { get; } = new AchievementCatalog();
@@ -54,9 +66,12 @@ namespace CrawfisSoftware.UGS.Achievements
             get => _useTrustedClient;
             set
             {
-                if (_useTrustedClient == value && _backend != null) return;
                 _useTrustedClient = value;
-                _backend = null;
+
+                // A backend handed in by the consumer outranks this flag. The achievements panel
+                // sets UseTrustedClient from its own checkbox as it is constructed, which would
+                // otherwise throw away a backend assigned deliberately moments earlier.
+                if (!_backendAssigned) _backend = null;
             }
         }
 
@@ -67,25 +82,58 @@ namespace CrawfisSoftware.UGS.Achievements
         public IAchievementBackend Backend
         {
             get => _backend ??= _useTrustedClient
-                ? new CloudCodeAchievementBackend()
+                ? new CloudCodeAchievementBackend(CloudCodeEndpoints)
                 : (IAchievementBackend)new CloudSaveAchievementBackend();
-            set => _backend = value;
+            set
+            {
+                _backend = value;
+                _backendAssigned = value != null;
+            }
         }
+
+        /// <summary>
+        /// Which Cloud Code module and functions the trusted backend calls. Set this before anything
+        /// touches <see cref="Backend"/> with <see cref="UseTrustedClient"/> on.
+        /// </summary>
+        /// <remarks>
+        /// This package ships no Cloud Code module, so the default deliberately carries no module
+        /// name and the trusted backend refuses to construct without one. A default that named some
+        /// module would instead fail per call, at runtime, against a module that does not exist.
+        /// </remarks>
+        public CloudCodeAchievementEndpoints CloudCodeEndpoints { get; set; } = CloudCodeAchievementEndpoints.Default;
 
         /// <summary>Clear the in-memory catalogue and drop the backend. Intended for tests.</summary>
         public static void Reset()
         {
+            // Release the bus subscription before dropping the instance, or the orphan keeps
+            // reloading the catalogue for the rest of the process and every later sign-in fans out
+            // to one more dead service.
+            if (_instance != null)
+                UGSBus.Unsubscribe(UGS_EventsEnum.PlayerAuthenticated, _instance.OnPlayerAuthenticated);
             _instance = null;
         }
+
+        // A static instance outlives play mode when Enter Play Mode Options disable the domain
+        // reload, carrying the previous session's backend, catalogue and subscriber list into the
+        // next run.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics() => Reset();
 
         /// <summary>
         /// Fetch definitions and this player's records. Safe to call repeatedly; overlapping calls
         /// collapse into the one already running.
         /// </summary>
-        public async void LoadAsync()
+        public void LoadAsync() => _ = ReloadAsync();
+
+        /// <summary>The load as an awaitable. Overlapping calls collapse into the one running.</summary>
+        private Task ReloadAsync()
         {
-            if (_loading) return;
-            _loading = true;
+            if (_loadTask != null && !_loadTask.IsCompleted) return _loadTask;
+            return _loadTask = LoadCoreAsync();
+        }
+
+        private async Task LoadCoreAsync()
+        {
             try
             {
                 string playerId = ResolvePlayerId();
@@ -96,11 +144,14 @@ namespace CrawfisSoftware.UGS.Achievements
             {
                 Report("load achievements", null, e);
             }
-            finally
-            {
-                _loading = false;
-            }
         }
+
+        /// <summary>
+        /// Make sure the catalogue has been fetched at least once. A mutation announces itself by
+        /// looking the achievement up, so an empty catalogue turns a successful unlock into silence.
+        /// A failure here is reported and swallowed: it must not stop the unlock it precedes.
+        /// </summary>
+        private Task EnsureLoadedAsync() => Catalog.Count > 0 ? Task.CompletedTask : ReloadAsync();
 
         /// <summary>Unlock an achievement, reporting the outcome on the event bus.</summary>
         public async void UnlockAchievement(string achievementId)
@@ -110,6 +161,7 @@ namespace CrawfisSoftware.UGS.Achievements
             UGSBus.Publish(UGS_EventsEnum.AchievementClaiming, this, achievementId);
             try
             {
+                await EnsureLoadedAsync();
                 var dto = await Backend.UnlockAsync(achievementId);
                 var achievement = Catalog.Find(achievementId);
                 achievement?.Record.Apply(dto);
@@ -135,6 +187,7 @@ namespace CrawfisSoftware.UGS.Achievements
 
             try
             {
+                await EnsureLoadedAsync();
                 var dto = await Backend.SetProgressAsync(achievementId, progressCount);
                 var achievement = Catalog.Find(achievementId);
                 bool wasUnlocked = achievement?.Record.Unlocked ?? false;
@@ -188,7 +241,13 @@ namespace CrawfisSoftware.UGS.Achievements
         {
             string detail = e is AchievementBackendException ? e.Message : $"{e.GetType().Name}: {e.Message}";
             Debug.LogWarning($"{nameof(AchievementsService)}: could not {what}. {detail}");
-            UGSBus.Publish(UGS_EventsEnum.AchievementClaimFailed, this, achievementId);
+
+            // Only an operation on a specific achievement is a claim failure. Announcing a failed
+            // catalogue load or reset as AchievementClaimFailed - carrying a null id - tells any
+            // host UI bound to that event that the player's claim did not stick, when the player
+            // claimed nothing.
+            if (!string.IsNullOrEmpty(achievementId))
+                UGSBus.Publish(UGS_EventsEnum.AchievementClaimFailed, this, achievementId);
         }
     }
 }

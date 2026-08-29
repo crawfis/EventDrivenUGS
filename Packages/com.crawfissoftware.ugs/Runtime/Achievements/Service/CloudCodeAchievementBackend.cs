@@ -34,8 +34,10 @@ namespace CrawfisSoftware.UGS.Achievements
             if (!endpoints.IsComplete)
             {
                 throw new AchievementBackendException(
-                    "CloudCodeAchievementEndpoints is incomplete. Every module and endpoint name must be set; " +
-                    "use CloudCodeAchievementEndpoints.Default as a starting point.");
+                    "CloudCodeAchievementEndpoints is incomplete - most likely ModuleName, which has no default " +
+                    "because this package ships no Cloud Code module. Set AchievementsService.Instance." +
+                    "CloudCodeEndpoints to the module you deployed before turning UseTrustedClient on. The four " +
+                    "function names in CloudCodeAchievementEndpoints.Default are a usable starting point.");
             }
             _endpoints = endpoints;
         }
