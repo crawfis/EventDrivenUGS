@@ -155,8 +155,23 @@ namespace CrawfisSoftware.UGS.Achievements
 
             if (remoteConfig.appConfig == null || !remoteConfig.appConfig.HasKey(RemoteConfigKey))
             {
-                throw new AchievementBackendException(
-                    $"Remote Config has no '{RemoteConfigKey}' key. Deploy the achievement definitions before using achievements.");
+                // Two very different causes, and blaming the wrong one costs an afternoon. Remote
+                // Config returns an empty config when it is fetched without an authenticated player,
+                // which looks exactly like a key that was never deployed.
+                bool signedIn = false;
+                try
+                {
+                    signedIn = Unity.Services.Authentication.AuthenticationService.Instance?.IsSignedIn ?? false;
+                }
+                catch (Exception)
+                {
+                    // Services not initialised, so certainly not signed in.
+                }
+
+                throw new AchievementBackendException(signedIn
+                    ? $"Remote Config has no '{RemoteConfigKey}' key. Deploy the achievement definitions before using achievements."
+                    : $"Remote Config returned no '{RemoteConfigKey}' key, but it was fetched with no player signed in, "
+                      + "so the response was empty regardless of what is deployed. Fetch after authentication.");
             }
 
             string json = remoteConfig.appConfig.GetJson(RemoteConfigKey);
