@@ -134,6 +134,15 @@ namespace CrawfisSoftware.UGS.Achievements
 
         private async Task LoadCoreAsync()
         {
+            // Views are built at scene Awake and their constructors ask for a load, which is long
+            // before sign-in completes. Going ahead anyway fetches Remote Config with no player -
+            // the SDK warns "Auth Service not initialized", returns an empty config, and the missing
+            // definitions then get reported as "Remote Config has no 'achievements' key", sending a
+            // developer off to redeploy definitions that were never the problem. Arriving early is
+            // normal, so it is not an error either: the constructor subscribes to PlayerAuthenticated
+            // and that reload is the one that counts.
+            if (!IsSignedIn()) return;
+
             try
             {
                 string playerId = ResolvePlayerId();
@@ -220,6 +229,20 @@ namespace CrawfisSoftware.UGS.Achievements
             catch (Exception e)
             {
                 Report("reset achievements", null, e);
+            }
+        }
+
+        /// <summary>Whether there is a player to load a catalogue for.</summary>
+        private static bool IsSignedIn()
+        {
+            try
+            {
+                return Unity.Services.Authentication.AuthenticationService.Instance?.IsSignedIn ?? false;
+            }
+            catch (Exception)
+            {
+                // Services not initialised yet, which is a "no" rather than an error.
+                return false;
             }
         }
 
