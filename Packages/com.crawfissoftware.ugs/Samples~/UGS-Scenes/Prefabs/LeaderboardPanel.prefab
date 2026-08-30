@@ -108,7 +108,7 @@ MonoBehaviour:
   - {fileID: 7433441132597879392, guid: 483c7fbfb16f3a01ce5b5dc5dd428247, type: 3}
   - {fileID: 7433441132597879392, guid: 00cf02dc3a7bd40e7c5227001050aed9, type: 3}
   _leaderboardId: DailyDistance
-  _tierId: weekly_distance_tier_1
+  _tierId: 
   _title: LEADERBOARD
   _numberToDisplay: 10
   _playerRangeLimit: 5
