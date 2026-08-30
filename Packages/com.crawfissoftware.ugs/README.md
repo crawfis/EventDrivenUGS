@@ -24,6 +24,7 @@ scenes, not editing the other side.
 | `RemoteConfig/` | Config fetch plus typed views over it: game balance, feature flags, campaign events, difficulty. |
 | `Leaderboard/` | `LeaderboardQuery` (reads), `LeaderboardPanel` (the display), `LeaderboardPlayerController` (score submission). |
 | `Achievements/` | Model, service and UI. Two interchangeable backends - see below. |
+| `Economy/` | `PlayerCurrencyManager` - the player's lifetime soft-currency balance. Two interchangeable backends, as achievements has. |
 | `UI/` | The runtime theme, the panel settings, and the achievement icons. |
 | `Editor/` | `AchievementDefinitionCatalog` and its exporter - authoring only, excluded from player builds. |
 
@@ -157,6 +158,47 @@ scenes carry.
 `0_BootStrap` is deliberately not included. A bootstrap composes an *application* - it owns game
 state, quit handling and scene teardown - and that is the project's job, not a package's.
 
+## Currency: two backends, one interface
+
+`ICurrencyBackend` has two implementations, chosen by the `Use Trusted Client` checkbox on the
+`PlayerCurrencyController` component:
+
+- **`EconomyCurrencyBackend`** (default) credits and debits the player's own balance through the
+  Economy service. Needs no module and no deploy. The device decides - fine while coins buy only
+  single-player progression.
+- **`CloudCodeCurrencyBackend`** routes the move through a Cloud Code module, which performs the
+  write with the module's *service* token. That is what keeps it working under an access policy
+  denying players direct writes to Economy. A reference module is in `CloudCode~/CurrencyModule`;
+  as with achievements there is **no default module name**, and the backend throws at construction
+  rather than failing per call against a module that does not exist.
+
+Note what the trusted path does **not** buy you: the amount still comes from the client. A module
+can only check it against state the server holds on its own, and this one holds none - it bounds
+the amount per call and no more. "Goes through Cloud Code" is not the same as "cannot be forged".
+
+| Function | Arguments | Returns |
+|---|---|---|
+| `GetCurrencyBalance` | `currencyId` (string) | `{ "CurrencyId": string, "Balance": long }` |
+| `AddCurrency` | `currencyId` (string), `amount` (int, negative to spend) | the same shape |
+
+`PlayerCurrencyManager.DefaultCurrencyId` is `"COIN"`. It is a **wire contract**: it must match a
+currency you created in the Unity Dashboard under Economy > Currencies, and nothing checks it at
+compile time. A wrong id surfaces as `CurrencyBackendException.IsCurrencyNotFound` on the first
+call, rather than as a balance that silently stays at zero.
+
+### How a coin becomes a lifetime balance
+
+The game publishes `GameSignals.CurrencyTotalChanged` carrying its **running session total**, not
+a delta, and zeroes it at the end of each run. `PlayerCurrencyController` remembers that number
+and banks it once, when `GameSignals.SessionEnding` arrives - so a run costs one balance write
+rather than one per coin. The resulting lifetime balance is published as
+`UGS_EventsEnum.CurrencyBalanceChanged`, carrying a `CurrencyBalanceUpdate`, which is what
+`CoinBasedAchievements` reads. That payload says whether the balance came from reading the store
+or from a write, because only a read may be used as a baseline - see the class remarks.
+
+A run abandoned by killing the application loses that run's coins. That is the cost of banking
+per run rather than per pickup.
+
 ## Known gaps
 
 - The typed Remote Config views - `GameBalanceManager`, `FeatureFlagsManager`,
@@ -165,6 +207,9 @@ state, quit handling and scene teardown - and that is the project's job, not a p
   yourself, or uncomment that block.
 - `DifficultyObserver` is not constructed by this package, so nothing here publishes
   `GameSignals.DifficultySettingsAvailable`. A host that wants that signal has to drive it.
+- `CoinBasedAchievements` is not placed in any sample scene, because none of the achievement
+  definitions this project ships is coin-based. Add it beside `DistanceBasedAchievements` in
+  `AchievementNotifications` once you have coin achievements to bind its threshold list to.
 - Nothing in this package has yet been exercised against live Unity Gaming Services. It compiles for
   both the editor and a player, and the call sites are written against the SDK sources, but no
   request has been made in anger.

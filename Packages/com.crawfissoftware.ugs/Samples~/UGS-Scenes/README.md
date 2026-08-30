@@ -28,7 +28,7 @@ Renaming an imported scene breaks the load that names it. Rename both ends toget
 
 | Scene | Role |
 |---|---|
-| `UGS_Boot_0_Initialization` | Entry point. Initializes services, then loads the other four. |
+| `UGS_Boot_0_Initialization` | Entry point. Initializes services, then loads the other four. Also hosts `PlayerCurrency` - see below. |
 | `UGS_Boot_1_RemoteConfig` | Fetches Remote Config. |
 | `UGS_Boot_2_Authentication` | Hosts the sign-in modal. |
 | `UGS_Boot_3_Achievements` | Loads the achievements panel and the unlock toast. |
@@ -41,6 +41,21 @@ There is deliberately **no `0_BootStrap`**. A bootstrap composes an *application
 state, quit handling and scene teardown — and that is your project's job, not a package's. These
 scenes expect something to load `UGS_Boot_0_Initialization` additively.
 
+## The persistent coin balance
+
+`UGS_Boot_0_Initialization` carries a `PlayerCurrency` object holding a `PlayerCurrencyController`.
+It banks each run's coins into the player's lifetime Economy balance when the run ends, and that
+lifetime balance is what `CoinBasedAchievements` reads.
+
+| Field | Value |
+|---|---|
+| `_currencyId` | `COIN` - **must match a currency you have created** in the Unity Dashboard under Economy > Currencies. Nothing checks this at compile time. |
+| `_useTrustedClient` | off - the client writes its own balance. Appropriate while coins buy only single-player progression. |
+| `_cloudCodeModuleName` | empty - only read when the trusted client is on. See `CloudCode~/CurrencyModule` in the repository. |
+
+Coins are banked once per run, not once per pickup, so a run abandoned by killing the application
+loses that run's coins. Crediting more often trades network calls for that.
+
 ## The panel prefabs
 
 Each is a `PanelRenderer` plus one component. The serialized field names are the contract between
@@ -51,7 +66,7 @@ the prefab and the C#, so re-wiring them by hand is fine but renaming them is no
 | Field | Value |
 |---|---|
 | `_leaderboardId` | `DailyDistance` |
-| `_tierId` | `weekly_distance_tier_1` — empty would read the global board instead |
+| `_tierId` | empty — reads the global board. Set it only if you actually created tiers on this board; a tier id that does not exist fails the read rather than falling back. |
 | `_numberToDisplay` | `10` |
 | `_styleSheets` | `UgsCore.uss`, then `UgsComponents.uss` — order matters, Components uses tokens Core declares |
 

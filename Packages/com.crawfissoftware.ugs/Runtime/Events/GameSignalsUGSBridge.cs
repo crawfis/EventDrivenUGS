@@ -33,8 +33,11 @@ namespace CrawfisSoftware.UGS.Events
             // Soft-currency total drives economy sync and coin achievements.
             (GameSignals.CurrencyTotalChanged, UGS_EventsEnum.UGS_CoinUpdated),
 
-            // A finished run is a score to submit, then a leaderboard to show.
+            // A finished run is a score to submit, coins to bank, then a leaderboard to show.
+            // SessionEnding appears twice deliberately: the pair list exists so one signal can
+            // declare several consequences, and these two are independent of each other.
             (GameSignals.SessionEnding, UGS_EventsEnum.ScoreUpdating),
+            (GameSignals.SessionEnding, UGS_EventsEnum.CurrencySyncRequested),
             (GameSignals.SessionEnded, UGS_EventsEnum.LeaderboardOpening),
         };
 

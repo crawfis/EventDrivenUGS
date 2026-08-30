@@ -3,7 +3,7 @@
   "displayName": "CrawfisSoftware - Unity Gaming Services",
   "version": "0.1.0",
   "unity": "6000.5",
-  "description": "A Unity Gaming Services integration expressed entirely as events: initialization, authentication and sign-in UI, remote config, leaderboards and achievements. The game and the services layer talk only through the GameSignals contract, so either side can be replaced - or removed - without the other noticing.\n\nContains no Asset Store content and no generated Cloud Code bindings, so it installs into any project without a prior import step.\n\nREQUIRES com.crawfissoftware.eventspublisher, .common and .contracts. All three are distributed by git URL and therefore cannot be declared as resolvable dependencies here - add them to your project manifest yourself. See the README.",
+  "description": "A Unity Gaming Services integration expressed entirely as events: initialization, authentication and sign-in UI, remote config, leaderboards, achievements and a persistent soft-currency balance backed by Economy. The game and the services layer talk only through the GameSignals contract, so either side can be replaced - or removed - without the other noticing.\n\nContains no Asset Store content and no generated Cloud Code bindings, so it installs into any project without a prior import step.\n\nREQUIRES com.crawfissoftware.eventspublisher, .common and .contracts. All three are distributed by git URL and therefore cannot be declared as resolvable dependencies here - add them to your project manifest yourself. See the README.",
   "keywords": [
     "unity",
     "unity3d",
@@ -40,6 +40,7 @@
     "com.unity.services.authentication": "3.7.3",
     "com.unity.services.cloudsave": "3.4.1",
     "com.unity.services.cloudcode": "2.10.4",
+    "com.unity.services.economy": "3.5.4",
     "com.unity.services.leaderboards": "2.3.4",
     "com.unity.remote-config-runtime": "4.0.4",
     "com.unity.remote-config": "4.2.5",

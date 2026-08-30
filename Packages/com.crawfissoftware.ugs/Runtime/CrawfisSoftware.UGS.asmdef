@@ -11,6 +11,7 @@
         "Unity.Services.Authentication.PlayerAccounts",
         "Unity.Services.CloudSave",
         "Unity.Services.CloudCode",
+        "Unity.Services.Economy",
         "Unity.Services.Leaderboards",
         "Unity.Services.RemoteConfig"
     ],
