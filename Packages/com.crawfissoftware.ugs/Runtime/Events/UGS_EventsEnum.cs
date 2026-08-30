@@ -29,6 +29,7 @@ namespace CrawfisSoftware.UGS.Events
         UGS_DistanceUpdated,
         // --- Economy ---
         UGS_CoinUpdated,
+        CurrencySyncRequested, CurrencyBalanceChanged, CurrencySyncFailed,
         // --- Rewarded Ads ---
         RewardAdWatching, RewardAdWatched,
         RewardAdFailedToShow, RewardAdClosedWithoutReward,

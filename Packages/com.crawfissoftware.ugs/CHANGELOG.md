@@ -5,6 +5,33 @@ All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `Economy/` - `PlayerCurrencyManager`, a lifetime soft-currency balance with the same
+  two-backend shape as achievements: `EconomyCurrencyBackend` (client-authoritative, via the
+  Economy service) and `CloudCodeCurrencyBackend` (server-authoritative), chosen by a
+  `UseTrustedClient` flag. `PlayerCurrencyController` configures it from a scene and banks each
+  run's coins into the balance when the run ends.
+- `UGS_EventsEnum.CurrencySyncRequested`, `CurrencyBalanceChanged` (payload:
+  `CurrencyBalanceUpdate`, carrying the balance and whether it came from a read or a write) and
+  `CurrencySyncFailed`.
+- `com.unity.services.economy` is now a declared dependency, and `Unity.Services.Economy` an
+  assembly reference.
+- The `UGS Boot Scenes` sample gains a `PlayerCurrency` object in `UGS_Boot_0_Initialization`.
+
+### Changed
+
+- `CoinBasedAchievements` now reads the lifetime balance (`CurrencyBalanceChanged`) instead of
+  the per-run session count (`UGS_CoinUpdated`). The session count is reset by the game at the
+  end of every run, so a "collect 500 coins" achievement written against it could only ever
+  mean 500 coins in a single run. The first balance of a session primes the thresholds without
+  announcing them, so a returning player is not re-congratulated at every launch.
+- `GameSignalsUGSBridge` maps `GameSignals.SessionEnding` to two targets now - the existing
+  `ScoreUpdating` and the new `CurrencySyncRequested`. The chain list has always been a list of
+  pairs rather than a dictionary precisely so one signal can declare several consequences.
+
 ## [0.1.0] - 2026-08-29
 
 Initial extraction. The `Assets/UGS` tree of the RunnerUGSTemplate project became a standalone

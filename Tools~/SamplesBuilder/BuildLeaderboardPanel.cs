@@ -26,7 +26,9 @@ public static class BuildLeaderboardPanel
     // UGS_Boot_4_Leaderboards.unity and read by nothing, and the panel's own defaults (global,
     // top 25) would silently show a different board.
     private const string LeaderboardId = "DailyDistance";
-    private const string TierId = "weekly_distance_tier_1";
+    // Empty on purpose. The DailyDistance board has no tiers, and a non-empty tier id routes
+    // the read through GetTierScoresAsync, which fails where the global read would work.
+    private const string TierId = "";
     private const int NumberToDisplay = 10;
 
     public static void Run()

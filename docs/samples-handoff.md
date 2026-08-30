@@ -98,7 +98,7 @@ scenes were authored against:
 | Field | Value | Why |
 |---|---|---|
 | `_leaderboardId` | `DailyDistance` | from the old prefab instance override |
-| `_tierId` | `weekly_distance_tier_1` | from `LeaderboardController._tier` |
+| `_tierId` | *(empty)* | was `weekly_distance_tier_1`, from `LeaderboardController._tier` — **corrected 2026-08-29**: the board has no tiers, so that value failed the read. See the note below. |
 | `_numberToDisplay` | `10` | from `LeaderboardController._numberToDisplay` |
 | `_styleSheets` | `UgsCore.uss`, `UgsComponents.uss` | order matters — Components uses tokens Core declares |
 
