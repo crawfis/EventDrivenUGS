@@ -12,6 +12,12 @@
     flex-grow: 1;
     align-items: center;
     justify-content: center;
+    /* The default text colour for the modal, set on the container so it INHERITS into every
+       element inside that does not name a colour of its own. UgsCore.uss sets the same default on
+       :root, but this UXML links UgsCore directly rather than through the theme, and a sheet
+       attached below the root has no :root in scope - so without this line the standalone modal
+       would take Unity's default colour on a near-black scrim. */
+    color: var(--ugs-color-text);
 }
 
 .ugs-signin-modal {
@@ -31,6 +37,7 @@
     -unity-text-align: middle-center;
     letter-spacing: var(--ugs-tracking-wide);
     margin-bottom: var(--ugs-space-6);
+    color: var(--ugs-color-text);
 }
 
 .ugs-signin-options {

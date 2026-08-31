@@ -21,7 +21,7 @@ scenes, not editing the other side.
 | `Events/` | `UGS_EventsEnum`, the auto-event flow, and `GameServiceEventsUGSBridge` - the only place UGS events and `GameServiceEvents` are named together. |
 | `Initialization/` | `PlayerAuthenticationManager`, `UGS_State`, connectivity handling. |
 | `Authentication/` | `PlayerSignIn` (the modal element) and `PlayerSignInController`. Anonymous, Unity Player Account, or username/password. |
-| `RemoteConfig/` | Config fetch plus typed views over it: game balance, feature flags, campaign events, difficulty. |
+| `RemoteConfig/` | The one config fetch, and the difficulty table it publishes to the contract. |
 | `Leaderboard/` | `LeaderboardQuery` (reads), `LeaderboardPanel` (the display), `LeaderboardPlayerController` (score submission). |
 | `Achievements/` | Model, service and UI. Two interchangeable backends - see below. |
 | `Economy/` | `PlayerCurrencyManager` - the player's lifetime soft-currency balance. Two interchangeable backends, as achievements has. |
@@ -226,12 +226,11 @@ per run rather than per pickup.
 
 ## Known gaps
 
-- The typed Remote Config views - `GameBalanceManager`, `FeatureFlagsManager`,
-  `CampaignEventConfigManager` - are public and complete, but `RemoteConfigManager` constructs them
-  only from code that is currently commented out, so nothing wires them for you yet. Construct them
-  yourself, or uncomment that block.
-- `DifficultyObserver` is not constructed by this package, so nothing here publishes
-  `GameServiceEvents.DifficultySettingsAvailable`. A host that wants that signal has to drive it.
+- Remote Config carries only the difficulty table. `RemoteConfigManager` publishes
+  `UGS_EventsEnum.DifficultySettingsFetched` - and so `GameServiceEvents.DifficultySettingsAvailable` -
+  when the environment defines a `difficulty_settings` key, and stays silent when it does not, so a
+  game keeps its own configs. Any other key is yours to read: subscribe to `RemoteConfigUpdated` and
+  take it off `RemoteConfigService.Instance.appConfig`.
 - `CoinBasedAchievements` is not placed in any sample scene, because none of the achievement
   definitions this project ships is coin-based. Add it beside `DistanceBasedAchievements` in
   `AchievementNotifications` once you have coin achievements to bind its threshold list to.

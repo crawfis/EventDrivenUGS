@@ -1,6 +1,9 @@
+using CrawfisSoftware.Config;
 using CrawfisSoftware.UGS.Events;
+using CrawfisSoftware.UGS.RemoteConfig;
 
 using System;
+using System.Collections.Generic;
 
 using Unity.Services.RemoteConfig;
 
@@ -15,7 +18,7 @@ namespace CrawfisSoftware.UGS
     ///    Dependencies: Unity.Services.RemoteConfig, UGS_State
     ///    Subscribes: UGS_EventsEnum.RemoteConfigFetching
     ///    Publishes: UGS_EventsEnum.RemoteConfigFetched, RemoteConfigUpdated,
-    ///               RemoteConfigFetchFailed, RemoteConfigFailed
+    ///               DifficultySettingsFetched, RemoteConfigFetchFailed, RemoteConfigFailed
     /// </summary>
     /// <remarks>
     /// <para><b>One fetch per process.</b> A second <c>RemoteConfigFetching</c> is ignored once a
@@ -24,28 +27,23 @@ namespace CrawfisSoftware.UGS
     /// player signing in, say - calls <see cref="Dispose"/> and then <see cref="Initialize"/>,
     /// which is the only supported way to ask for a second fetch.</para>
     /// <para>A <em>failed</em> fetch does not latch, so a retry is always possible.</para>
+    /// <para><b>This is the only Remote Config fetch in the package.</b> The difficulty table used
+    /// to be read by a separate <c>DifficultyObserver</c> that watched for authentication and then
+    /// fetched again on its own - a second round trip for a payload this fetch had already
+    /// downloaded, and one nothing ever constructed, so the signal was never published at all.
+    /// Reading the table out of the response we already have is why that type is gone.</para>
     /// </remarks>
     public class RemoteConfigManager : MonoBehaviour, IDisposable
     {
-        //[SerializeField] private string _remoteConfigDifficultyLevel = "Hard";
         [SerializeField] private bool _logRemoteConfigValues = true;
 
-        //private GameDifficultyManager _gameDifficultyManager;
-        //private FeatureFlagsManager _featureFlagsManager;
-        //private GameBalanceManager _gameBalanceManager;
-        //private CampaignEventConfigManager _eventConfigManager;
         private bool _isInitialized = false;
 
-        //public FeatureFlags FeatureFlags => _featureFlagsManager?.FeatureFlags ?? default;
-        //public GameBalance GameBalance => _gameBalanceManager?.GameBalance ?? default;
-        //public CampaignEventConfig EventConfig => _eventConfigManager?.EventConfig ?? default;
         public bool IsInitialized => _isInitialized;
 
         private void Awake()
         {
-            //if(UnityServices.Instance != null && UnityServices.Instance.State == ServicesInitializationState.Initialized)
-            //if (UnityServices.State == ServicesInitializationState.Initialized)
-            if(UGS_State.IsRemoteConfigFetching)
+            if (UGS_State.IsRemoteConfigFetching)
             {
                 OnFetchRemoteConfig("RemoteConfig Fetching", this, null);
             }
@@ -64,6 +62,7 @@ namespace CrawfisSoftware.UGS
             // still in flight when the scene unloads would call back into a destroyed MonoBehaviour.
             Dispose();
         }
+
         private void OnFetchRemoteConfig(string eventName, object sender, object data)
         {
             Initialize(_logRemoteConfigValues);
@@ -74,28 +73,14 @@ namespace CrawfisSoftware.UGS
             if (_isInitialized) return;
 
             _logRemoteConfigValues = logValues;
-            
+
             // Set before starting the fetch, not after: the fetch is asynchronous, so a second
             // RemoteConfigFetching arriving while it is in flight would otherwise start another.
             // InitializeRemoteConfig clears it again if the fetch fails.
             _isInitialized = true;
 
-            //InitializeManagers(difficultyLevel);
             InitializeRemoteConfig();
         }
-
-        //private void InitializeManagers(string difficultyLevel)
-        //{
-        //    _gameDifficultyManager = new GameDifficultyManager();
-        //    _featureFlagsManager = new FeatureFlagsManager();
-        //    _gameBalanceManager = new GameBalanceManager();
-        //    _eventConfigManager = new CampaignEventConfigManager();
-
-        //    _gameDifficultyManager.Initialize(difficultyLevel, _logRemoteConfigValues);
-        //    _featureFlagsManager.Initialize(_logRemoteConfigValues);
-        //    _gameBalanceManager.Initialize(_logRemoteConfigValues);
-        //    _eventConfigManager.Initialize(_logRemoteConfigValues);
-        //}
 
         // async void, so no caller can ever observe what this throws. Anything it throws has to be
         // caught here or it is lost entirely - and losing it means the boot waits forever for a
@@ -110,8 +95,6 @@ namespace CrawfisSoftware.UGS
 
             try
             {
-                //RemoteConfigService.Instance.SetEnvironmentID("initial_development");
-
                 // Remove first: Initialize runs again after a failure, and the SDK event would
                 // otherwise accumulate one handler per attempt.
                 RemoteConfigService.Instance.FetchCompleted -= OnRemoteConfigFetched;
@@ -144,6 +127,7 @@ namespace CrawfisSoftware.UGS
             Debug.LogWarning($"{nameof(RemoteConfigManager)}: Remote Config was not fetched because {reason}.");
             UGSBus.Publish(UGS_EventsEnum.RemoteConfigFetchFailed, this, e?.Message ?? reason);
         }
+
         private UserAttributes CreateUserAttributes()
         {
             return new UserAttributes
@@ -191,10 +175,7 @@ namespace CrawfisSoftware.UGS
         {
             try
             {
-                //_gameDifficultyManager.UpdateFromRemoteConfig();
-                //_featureFlagsManager?.UpdateFromRemoteConfig();
-                //_gameBalanceManager?.UpdateFromRemoteConfig();
-                //_eventConfigManager?.UpdateFromRemoteConfig();
+                PublishDifficultySettings();
                 UGSBus.Publish(UGS_EventsEnum.RemoteConfigUpdated, this, UnityEngine.Time.time);
             }
             catch (Exception e)
@@ -204,10 +185,37 @@ namespace CrawfisSoftware.UGS
             }
         }
 
-        //public bool IsFeatureEnabled(string featureName)
-        //{
-        //    return _featureFlagsManager?.IsFeatureEnabled(featureName) ?? false;
-        //}
+        /// <summary>
+        /// Announce the difficulty table carried by the config just fetched, if there is one.
+        /// </summary>
+        /// <remarks>
+        /// A missing key is not a failure and is deliberately not reported as one. A game ships its
+        /// own difficulty configs and only lets the environment override them, so publishing
+        /// nothing leaves those local defaults standing - which is the correct behaviour for an
+        /// environment that has never had the key deployed, and for an offline run.
+        /// </remarks>
+        private void PublishDifficultySettings()
+        {
+            RuntimeConfig appConfig = RemoteConfigService.Instance.appConfig;
+            string key = RemoteConfigConstants.difficultySettingsKey;
+
+            if (!appConfig.HasKey(key))
+            {
+                Debug.Log($"{nameof(RemoteConfigManager)}: no '{key}' in this environment, so the game keeps its local difficulty configs.");
+                return;
+            }
+
+            // config[key] is the raw JSON token, not one of the typed getters: the value is an
+            // array of objects, which RuntimeConfig has no accessor for.
+            List<DifficultyConfig> difficulties = appConfig.config[key]?.ToObject<List<DifficultyConfig>>();
+            if (difficulties == null || difficulties.Count == 0)
+            {
+                Debug.LogWarning($"{nameof(RemoteConfigManager)}: '{key}' is present but held no difficulty configs, so the game keeps its local ones.");
+                return;
+            }
+
+            UGSBus.Publish(UGS_EventsEnum.DifficultySettingsFetched, this, difficulties);
+        }
 
         private void LogRemoteConfigValues()
         {
@@ -216,9 +224,6 @@ namespace CrawfisSoftware.UGS
             {
                 Debug.Log($"Key: {key}");
             }
-            //_featureFlagsManager?.LogValues();
-            //_gameBalanceManager?.LogValues();
-            //_eventConfigManager?.LogValues();
         }
 
         public void Dispose()
