@@ -25,7 +25,8 @@ other in, so every one you use must be listed in your own manifest, along with E
 ```
 
 The URL grammar is `protocol://host/path.git?path=/subfolder#revision` - `?path=` always precedes
-`#revision`. Pin a revision by appending `#v0.1.0`.
+`#revision`. Pin a revision by appending a tag, e.g. `#v0.2.0`, once one is cut - the packages are
+at **0.2.0** and `main` is what an unpinned URL tracks.
 
 ```
   game events   <->   GameSignals   <->   UGS events

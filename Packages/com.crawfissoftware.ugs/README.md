@@ -210,9 +210,12 @@ per run rather than per pickup.
 - `CoinBasedAchievements` is not placed in any sample scene, because none of the achievement
   definitions this project ships is coin-based. Add it beside `DistanceBasedAchievements` in
   `AchievementNotifications` once you have coin achievements to bind its threshold list to.
-- Nothing in this package has yet been exercised against live Unity Gaming Services. It compiles for
-  both the editor and a player, and the call sites are written against the SDK sources, but no
-  request has been made in anger.
+- Only part of this package has been exercised against live Unity Gaming Services. Boot,
+  initialization and authentication have: the sign-in modal renders and signs a player in, and the
+  achievements catalogue load reaches Remote Config. **Not yet run:** the currency path end to end
+  (no coin has been banked into an Economy balance), the two Cloud Code backends, and leaderboard
+  submission. Compiling was never the hard part - the first play session found three defects that
+  a build could not have shown, all silent.
 
 ## Licence
 
