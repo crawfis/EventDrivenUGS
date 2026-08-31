@@ -336,8 +336,22 @@ finder missed, one attacking its impact - and kept only on a majority. 110 findi
       no error at import or at run time;</li>
     <li>the leaderboard panel shipped a tier id for a board with no tiers.</li>
   </ul>
-  <p>Still unexercised: the currency path end to end (nothing has yet banked a coin into an Economy
-  balance), the Cloud Code trusted backends, and leaderboard submission.</p>
+  <p>A later session closed most of the rest. Leaderboard submission returns a real entry;
+  Cloud Save achievements unlock and write; and the currency path banked a run&rsquo;s coins into an
+  Economy <code>COIN</code> balance, confirmed against the dashboard to the coin. Two findings came
+  out of it, and neither was a defect in this package:</p>
+  <ul>
+    <li><code>PlayerCurrencyController</code> had never been placed in a scene in the consuming
+      project. The code was correct and complete; the sole subscriber to
+      <code>CurrencySyncRequested</code> simply did not exist, so every hop up to that signal fired
+      and nothing wrote. <strong>A compile cannot show that, and neither can a survey of the package
+      on its own</strong> &mdash; only a play session can.</li>
+    <li>the project defined no <code>COIN</code> currency in the environment it signs in to, which
+      the package reported as &ldquo;the currency id does not exist in this project&rsquo;s Economy
+      configuration&rdquo; rather than as a silent zero. That diagnostic did its job: it named the
+      cause exactly, and it is deliberately distinguished from an access denial.</li>
+  </ul>
+  <p>Still unexercised: the two Cloud Code trusted backends, which need a deployed module.</p>
 </div>
 
 <div class="card good">

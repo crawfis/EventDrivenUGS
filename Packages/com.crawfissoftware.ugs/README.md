@@ -186,6 +186,31 @@ currency you created in the Unity Dashboard under Economy > Currencies, and noth
 compile time. A wrong id surfaces as `CurrencyBackendException.IsCurrencyNotFound` on the first
 call, rather than as a balance that silently stays at zero.
 
+### Two things must be true before a single coin can bank
+
+Neither is a compile error, and neither shows up in a survey of this package on its own.
+
+1. **`PlayerCurrencyController` must be in a loaded scene.** It is the *only* subscriber to
+   `UGS_EventsEnum.CurrencySyncRequested`. Leave it out and every hop up to that signal still fires,
+   so an event log looks healthy right up to the point where the sync is received by nobody and
+   nothing is written. Put it beside `GameSignalsUGSBridge`, as the `UGS Boot Scenes` sample does.
+2. **The currency must exist in the environment you sign in to.** Economy configuration is
+   per-environment, so one published to `production` does not exist in `initial-development`.
+   Create it in the Dashboard under Economy > Currencies, or commit a deployment resource and push
+   it from the Deployment window - a file named `COIN.ecc` whose id comes from the filename:
+
+   ```json
+   {
+     "$schema": "https://ugs-config-schemas.unity3d.com/v1/economy/economy-currency.schema.json",
+     "name": "Coin",
+     "initial": 0
+   }
+   ```
+
+   A missing currency is reported as `CurrencyBackendException.IsCurrencyNotFound`, which
+   `PlayerCurrencyManager` turns into the warning "the currency id does not exist in this project's
+   Economy configuration" - deliberately, so it cannot be mistaken for an access-policy problem.
+
 ### How a coin becomes a lifetime balance
 
 The game publishes `GameSignals.CurrencyTotalChanged` carrying its **running session total**, not
@@ -210,12 +235,14 @@ per run rather than per pickup.
 - `CoinBasedAchievements` is not placed in any sample scene, because none of the achievement
   definitions this project ships is coin-based. Add it beside `DistanceBasedAchievements` in
   `AchievementNotifications` once you have coin achievements to bind its threshold list to.
-- Only part of this package has been exercised against live Unity Gaming Services. Boot,
-  initialization and authentication have: the sign-in modal renders and signs a player in, and the
-  achievements catalogue load reaches Remote Config. **Not yet run:** the currency path end to end
-  (no coin has been banked into an Economy balance), the two Cloud Code backends, and leaderboard
-  submission. Compiling was never the hard part - the first play session found three defects that
-  a build could not have shown, all silent.
+- Most of this package has now been exercised against live Unity Gaming Services. Boot,
+  initialization, authentication, leaderboard submission, Cloud Save achievements and the currency
+  path end to end all run: a play session banked a run's coins into an Economy `COIN` balance and
+  the dashboard agreed with the count. **Still not run:** the two Cloud Code backends, which need a
+  deployed module. Compiling was never the hard part - the first play session found three defects
+  a build could not have shown, all silent, and the session that closed the currency path found a
+  fourth thing a build cannot show at all: a component that compiles, ships, and is simply never
+  placed in a scene.
 
 ## Licence
 
