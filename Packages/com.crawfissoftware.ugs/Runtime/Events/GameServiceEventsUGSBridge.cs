@@ -1,5 +1,6 @@
 using CrawfisSoftware.Contracts;
 using CrawfisSoftware.Events;
+using CrawfisSoftware.UGS.Economy;
 
 using UnityEngine;
 using GameServiceBus = CrawfisSoftware.Events.EventsFor<CrawfisSoftware.Contracts.GameServiceEvents>;
@@ -23,6 +24,9 @@ namespace CrawfisSoftware.UGS.Events
     {
         private static readonly EventId<ServicesStatus> StatusChanged =
             GameServiceBus.Id<ServicesStatus>(GameServiceEvents.ServicesStatusChanged);
+
+        private static readonly EventId<long> BalanceChanged =
+            GameServiceBus.Id<long>(GameServiceEvents.CurrencyBalanceChanged);
 
         private static readonly (GameServiceEvents From, UGS_EventsEnum To)[] GameServiceToUGS =
         {
@@ -75,6 +79,7 @@ namespace CrawfisSoftware.UGS.Events
             _ugsToGameService.Attach();
 
             UGSBus.Subscribe(UGS_EventsEnum.PlayerAuthenticated, OnAuthenticated);
+            UGSBus.Subscribe(UGS_EventsEnum.CurrencyBalanceChanged, OnCurrencyBalanceChanged);
             for (int i = 0; i < FailureEvents.Length; i++)
             {
                 UGSBus.Subscribe(FailureEvents[i], OnFailed);
@@ -92,6 +97,7 @@ namespace CrawfisSoftware.UGS.Events
             _ugsToGameService.Detach();
 
             UGSBus.Unsubscribe(UGS_EventsEnum.PlayerAuthenticated, OnAuthenticated);
+            UGSBus.Unsubscribe(UGS_EventsEnum.CurrencyBalanceChanged, OnCurrencyBalanceChanged);
             for (int i = 0; i < FailureEvents.Length; i++)
             {
                 UGSBus.Unsubscribe(FailureEvents[i], OnFailed);
@@ -106,6 +112,21 @@ namespace CrawfisSoftware.UGS.Events
         private void OnFailed(string eventName, object sender, object data)
         {
             StatusChanged.Publish(this, ServicesStatus.Unavailable);
+        }
+
+        /// <summary>
+        /// Forward the banked balance to the contract as a plain number.
+        /// </summary>
+        /// <remarks>
+        /// A pair in the dispatcher table cannot do this. The dispatcher forwards the source
+        /// event's payload untouched, and the UGS payload is a <see cref="CurrencyBalanceUpdate"/>
+        /// - a type in this package. Forwarding it would hand a game a services type to cast, which
+        /// is the coupling this bridge exists to prevent. So the number is unwrapped by hand, the
+        /// same way the services level is.
+        /// </remarks>
+        private void OnCurrencyBalanceChanged(string eventName, object sender, object data)
+        {
+            if (data is CurrencyBalanceUpdate update) BalanceChanged.Publish(this, update.Balance);
         }
     }
 }

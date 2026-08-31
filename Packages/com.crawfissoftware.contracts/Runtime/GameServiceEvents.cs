@@ -79,5 +79,26 @@ namespace CrawfisSoftware.Contracts
         /// see the note above.
         /// </summary>
         DifficultySettingsAvailable = 31,
+
+        /// <summary>
+        /// The player's banked lifetime soft-currency balance, as the service reports it.
+        /// Data: long.
+        /// </summary>
+        /// <remarks>
+        /// <para>Not the mirror of <see cref="CurrencyTotalChanged"/>. That one runs game to
+        /// services and carries a single session's running count; this is the stored total the
+        /// service is authoritative for. A game that wants to show a balance must use this one -
+        /// the session count is not a balance and resets every run.</para>
+        /// <para><b>Sticky</b>, for the reason <see cref="ServicesStatusChanged"/> is: the balance
+        /// is read once at sign-in, long before a HUD in an additively-loaded scene exists to hear
+        /// it. As an edge it would leave that HUD blank until a run ended and banked. Safe here
+        /// because it is one event carrying a value, not two opposing edges.</para>
+        /// <para>A <c>long</c>, not the service's own update type. The type carrying this number
+        /// on the services side belongs to that layer, and a contract that names it would not be
+        /// a contract - so only the number crosses.</para>
+        /// </remarks>
+        [EventPayload(typeof(long))]
+        [EventDelivery(EventDelivery.Sticky)]
+        CurrencyBalanceChanged = 40,
     }
 }
