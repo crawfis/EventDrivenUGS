@@ -5,6 +5,19 @@ All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-08-31
+
+### Added
+
+- `GameServiceEventsUGSBridge` now forwards the banked balance to the contract, publishing
+  `GameServiceEvents.CurrencyBalanceChanged` whenever `UGS_EventsEnum.CurrencyBalanceChanged`
+  fires. The number is unwrapped by hand rather than declared as a dispatcher pair: the
+  dispatcher forwards a payload untouched, and this one is a `CurrencyBalanceUpdate` - a type in
+  this package - so forwarding it would hand a game a services type to cast.
+
+  Until now the balance was reachable only by `CoinBasedAchievements` inside this package, which
+  meant a host had no supported way to display it.
+
 ## [0.3.0] - 2026-08-31
 
 ### Changed

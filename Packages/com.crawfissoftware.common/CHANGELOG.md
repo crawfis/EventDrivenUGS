@@ -5,6 +5,11 @@ All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-08-31
+
+No code changes. The version is aligned with the `v0.4.0` repository tag, because the three
+packages share one tag stream and version together.
+
 ## [0.3.0] - 2026-08-31
 
 No code changes. The version is aligned with the `v0.3.0` repository tag, because the three

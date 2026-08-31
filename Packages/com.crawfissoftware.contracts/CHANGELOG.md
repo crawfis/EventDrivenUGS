@@ -5,6 +5,23 @@ All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-08-31
+
+### Added
+
+- `GameServiceEvents.CurrencyBalanceChanged` - the player's banked lifetime soft-currency
+  balance as the backing service reports it. Payload `long`, delivery Sticky.
+
+  It is not the mirror of `CurrencyTotalChanged`: that runs game to services and carries one
+  session's running count, while this is the stored total the service is authoritative for. A
+  game showing a balance needs this one; the session count resets every run.
+
+  Sticky for the same reason `ServicesStatusChanged` is - the balance is read once at sign-in,
+  long before a HUD in an additively-loaded scene exists to hear it, and as an edge it would
+  leave that HUD blank until a run ended.
+
+  Additive; existing members keep their values.
+
 ## [0.3.0] - 2026-08-31
 
 ### Changed
