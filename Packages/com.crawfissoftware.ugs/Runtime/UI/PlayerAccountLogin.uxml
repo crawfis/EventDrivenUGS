@@ -2,10 +2,15 @@
     <!-- The stylesheet is linked by GUID, and the sign-in element is named by its FULLY QUALIFIED
          type name. Neither is checked at compile time: rename the class or its namespace and this
          tag silently produces nothing, leaving an empty modal at runtime. -->
-    <!-- UgsCore.uss first: UgsSignIn.uss is written against the --ugs-* design tokens declared
+    <!-- UgsCore.uss first: UgsSignIn.uss is written against the ugs custom properties declared
          there, and a token with no declaration falls back to the property's initial value rather
          than reporting anything. Linking it here means the modal styles correctly even in a panel
-         whose theme does not import the UGS theme. -->
+         whose theme does not import the UGS theme.
+
+         Do not write a double hyphen anywhere in a comment in this file, including in front of a
+         custom-property name. It is illegal inside an XML comment, and UXML fails to parse in the
+         quietest possible way: the importer yields an EMPTY VisualTreeAsset, so the panel builds
+         with zero children and renders nothing, with no error at import time or at run time. -->
     <Style src="project://database/Packages/com.crawfissoftware.ugs/Runtime/UI/Theme/UgsCore.uss?fileID=7433441132597879392&amp;guid=483c7fbfb16f3a01ce5b5dc5dd428247&amp;type=3#UgsCore"/>
     <Style src="project://database/Packages/com.crawfissoftware.ugs/Runtime/UI/Theme/UgsSignIn.uss?fileID=7433441132597879392&amp;guid=f08a751e9f166926e3db87f03a798189&amp;type=3#UgsSignIn"/>
     <ui:VisualElement class="ugs-signin-container">
