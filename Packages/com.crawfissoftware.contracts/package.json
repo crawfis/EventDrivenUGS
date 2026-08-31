@@ -1,9 +1,9 @@
 {
   "name": "com.crawfissoftware.contracts",
   "displayName": "CrawfisSoftware - Game/Service Contracts",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "unity": "6000.5",
-  "description": "The GameSignals vocabulary a game and a backing services layer use to talk to each other, in terms neither of them owns. Depends on nothing but the events package, so both sides can reference it without referencing each other.\n\nREQUIRES com.crawfissoftware.eventspublisher, which is distributed by git URL and therefore cannot be declared as a resolvable dependency here. Add it to your project manifest yourself - see the README.",
+  "description": "The GameServiceEvents vocabulary a game and a backing services layer use to talk to each other, in terms neither of them owns. Depends on nothing but the events package, so both sides can reference it without referencing each other.\n\nREQUIRES com.crawfissoftware.eventspublisher, which is distributed by git URL and therefore cannot be declared as a resolvable dependency here. Add it to your project manifest yourself - see the README.",
   "keywords": [
     "unity",
     "unity3d",

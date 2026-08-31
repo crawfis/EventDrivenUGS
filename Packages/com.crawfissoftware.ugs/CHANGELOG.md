@@ -5,6 +5,29 @@ All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-08-31
+
+### Changed
+
+- **Breaking.** Follows the contracts rename of `GameSignals` to `GameServiceEvents`.
+  `GameSignalsUGSBridge` is now `GameServiceEventsUGSBridge`, in the same namespace and file
+  location. Behaviour is identical - the same mappings, the same hand-published
+  `ServicesStatus` level, the same members on both enums.
+- Requires `com.crawfissoftware.contracts` 0.3.0 or later. The two move together: this bridge is
+  the one place that names the contract enum, so an older contracts package will not compile
+  against this release.
+
+### Notes
+
+- The bridge's `.meta` GUID is unchanged, so a `GameSignalsUGSBridge` component already placed
+  in a scene - including the one in the `UGS Boot Scenes` sample - rebinds to the renamed class
+  with no scene edit. Unity resolves MonoBehaviours by script GUID, not by type name.
+- The sample scene's GameObject is still *named* `GameSignalsUGSBridge` and its
+  `m_EditorClassIdentifier` still reads `Assembly-CSharp::...GameSignalsUGSBridge`. Both are
+  cosmetic and deliberately left: that identifier was already stale before this change - the
+  class has lived in the `CrawfisSoftware.UGS` assembly since extraction, not `Assembly-CSharp`
+  - which is the evidence that Unity does not read it.
+
 ## [0.2.0] - 2026-08-30
 
 ### Added

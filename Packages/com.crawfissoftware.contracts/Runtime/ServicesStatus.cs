@@ -2,7 +2,7 @@ namespace CrawfisSoftware.Contracts
 {
     /// <summary>
     /// Whether the backing services are usable. Carried by
-    /// <see cref="GameSignals.ServicesStatusChanged"/>.
+    /// <see cref="GameServiceEvents.ServicesStatusChanged"/>.
     /// </summary>
     /// <remarks>
     /// Three values rather than a bool, because "not ready" is two different situations to a
