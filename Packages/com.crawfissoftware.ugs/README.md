@@ -193,7 +193,7 @@ Neither is a compile error, and neither shows up in a survey of this package on 
 1. **`PlayerCurrencyController` must be in a loaded scene.** It is the *only* subscriber to
    `UGS_EventsEnum.CurrencySyncRequested`. Leave it out and every hop up to that signal still fires,
    so an event log looks healthy right up to the point where the sync is received by nobody and
-   nothing is written. Put it beside `GameSignalsUGSBridge`, as the `UGS Boot Scenes` sample does.
+   nothing is written. Put it beside `GameServiceEventsUGSBridge`, as the `UGS Boot Scenes` sample does.
 2. **The currency must exist in the environment you sign in to.** Economy configuration is
    per-environment, so one published to `production` does not exist in `initial-development`.
    Create it in the Dashboard under Economy > Currencies, or commit a deployment resource and push
