@@ -1,6 +1,6 @@
 # CrawfisSoftware - Game/Service Contracts
 
-`GameSignals` is the vocabulary a game and a backing services layer use to talk to each other,
+`GameServiceEvents` is the vocabulary a game and a backing services layer use to talk to each other,
 in terms **neither of them owns**.
 
 Without it, a services layer ends up naming the game's events - a UGS layer subscribing to
@@ -17,12 +17,12 @@ Two types, and deliberately nothing else:
 
 | Type | Purpose |
 |------|---------|
-| `GameSignals` | The enum. Game -> services: `ScoreUpdated`, `CurrencyTotalChanged`, `SessionEnding`, `SessionEnded`. Services -> game: `ServicesReady`, `ServicesUnavailable`, `ServicesStatusChanged`, `RemoteConfigApplied`, `DifficultySettingsAvailable`. |
+| `GameServiceEvents` | The enum. Game -> services: `ScoreUpdated`, `CurrencyTotalChanged`, `SessionEnding`, `SessionEnded`. Services -> game: `ServicesReady`, `ServicesUnavailable`, `ServicesStatusChanged`, `RemoteConfigApplied`, `DifficultySettingsAvailable`. |
 | `ServicesStatus` | `Connecting` / `Ready` / `Unavailable`. Three values rather than a bool, because "not ready" is two different situations to a player: still trying, and gave up. |
 
 Every member is a crossing someone maintains forever, so the enum carries only what a service
 genuinely needs. Anything specific to one game belongs in that game's own domain, translated
-into these signals by per-game glue.
+into these events by per-game glue.
 
 `ServicesStatusChanged` is `Sticky` on purpose: the glue that translates it into a host's
 lifecycle lives in an additively-loaded scene and may subscribe long after services came up. A

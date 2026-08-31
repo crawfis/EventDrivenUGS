@@ -15,13 +15,13 @@ namespace CrawfisSoftware.Contracts
     /// is metres run, puzzles solved, or laps completed. Neither references the other's types.</para>
     /// <para><b>Deliberately small.</b> Every member here is a crossing someone must maintain
     /// forever, so it carries only what a service genuinely needs. Anything specific to one game
-    /// belongs in that game's own domain, translated into these signals by per-game glue.</para>
+    /// belongs in that game's own domain, translated into these events by per-game glue.</para>
     /// <para><b>Payloads.</b> Declared only where the type is primitive and unambiguous. The
     /// difficulty payload is deliberately undeclared: it currently carries a game-side config type,
     /// and a contract that references the game's types is not a contract.</para>
     /// </remarks>
     [EventEnum]
-    public enum GameSignals
+    public enum GameServiceEvents
     {
         // ---------- Game -> Services ----------
 

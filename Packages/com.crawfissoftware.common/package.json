@@ -1,7 +1,7 @@
 {
   "name": "com.crawfissoftware.common",
   "displayName": "CrawfisSoftware - Common",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "unity": "6000.5",
   "description": "Game-neutral building blocks shared across CrawfisSoftware Unity projects: the EventChainDispatcher/AutoEventFlowBase pair that backs every auto-event flow and cross-domain bridge, additive scene-management components driven by events, a difficulty config, and small utilities.\n\nREQUIRES com.crawfissoftware.eventspublisher, which is distributed by git URL and therefore cannot be declared as a resolvable dependency here. Add it to your project manifest yourself - see the README.",
   "keywords": [

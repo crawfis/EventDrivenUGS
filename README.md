@@ -7,7 +7,7 @@ Three UPM packages in one repository, consumed by git URL with `?path=`.
 
 | Package | What it is |
 |---------|------------|
-| [`com.crawfissoftware.contracts`](Packages/com.crawfissoftware.contracts) | `GameSignals` - the vocabulary a game and a services layer share, in terms neither owns. |
+| [`com.crawfissoftware.contracts`](Packages/com.crawfissoftware.contracts) | `GameServiceEvents` - the vocabulary a game and a services layer share, in terms neither owns. |
 | [`com.crawfissoftware.common`](Packages/com.crawfissoftware.common) | Game-neutral pieces: the event-chain dispatcher behind every auto-flow and bridge, additive scene plumbing, small utilities. |
 | [`com.crawfissoftware.ugs`](Packages/com.crawfissoftware.ugs) | A Unity Gaming Services integration expressed entirely as events. |
 
@@ -25,12 +25,14 @@ other in, so every one you use must be listed in your own manifest, along with E
 ```
 
 The URL grammar is `protocol://host/path.git?path=/subfolder#revision` - `?path=` always precedes
-`#revision`. Pin a revision by appending a tag, e.g. `#v0.2.0`, once one is cut - the packages are
-at **0.2.0** and `main` is what an unpinned URL tracks.
+`#revision`. Pin a revision by appending a tag, e.g. `#v0.3.0` - the packages are at **0.3.0**,
+and `main` is what an unpinned URL tracks. Pin it: `GameSignals` was renamed to
+`GameServiceEvents` in 0.3.0, and an unpinned consumer picks up a breaking rename at whatever
+moment it next resolves.
 
 ```
-  game events   <->   GameSignals   <->   UGS events
-   (your glue)        (contracts)        (ugs package)
+  game events   <->   GameServiceEvents   <->   UGS events
+  (your glue)            (contracts)          (ugs package)
 ```
 
 ## Why one repository

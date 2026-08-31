@@ -5,12 +5,12 @@ turns that into service calls and publishes what came back. Neither side referen
 types.
 
 ```
-  game events   <->   GameSignals   <->   UGS events
-      (your glue)      (contract)      (this package)
+  game events   <->   GameServiceEvents   <->   UGS events
+  (your glue)             (contract)          (this package)
 ```
 
-The point is **replaceability**. A game that talks only through `GameSignals` can run with this
-package absent - the sibling project ships a build profile that does exactly that - and this
+The point is **replaceability**. A game that talks only through `GameServiceEvents` can run with
+this package absent - the sibling project ships a build profile that does exactly that - and this
 package can run against a dummy game with random scores. Removing a domain means not loading its
 scenes, not editing the other side.
 
@@ -18,7 +18,7 @@ scenes, not editing the other side.
 
 | Area | What it does |
 |------|--------------|
-| `Events/` | `UGS_EventsEnum`, the auto-event flow, and `GameSignalsUGSBridge` - the only place UGS events and `GameSignals` are named together. |
+| `Events/` | `UGS_EventsEnum`, the auto-event flow, and `GameServiceEventsUGSBridge` - the only place UGS events and `GameServiceEvents` are named together. |
 | `Initialization/` | `PlayerAuthenticationManager`, `UGS_State`, connectivity handling. |
 | `Authentication/` | `PlayerSignIn` (the modal element) and `PlayerSignInController`. Anonymous, Unity Player Account, or username/password. |
 | `RemoteConfig/` | Config fetch plus typed views over it: game balance, feature flags, campaign events, difficulty. |
@@ -188,10 +188,10 @@ call, rather than as a balance that silently stays at zero.
 
 ### How a coin becomes a lifetime balance
 
-The game publishes `GameSignals.CurrencyTotalChanged` carrying its **running session total**, not
-a delta, and zeroes it at the end of each run. `PlayerCurrencyController` remembers that number
-and banks it once, when `GameSignals.SessionEnding` arrives - so a run costs one balance write
-rather than one per coin. The resulting lifetime balance is published as
+The game publishes `GameServiceEvents.CurrencyTotalChanged` carrying its **running session
+total**, not a delta, and zeroes it at the end of each run. `PlayerCurrencyController` remembers
+that number and banks it once, when `GameServiceEvents.SessionEnding` arrives - so a run costs one
+balance write rather than one per coin. The resulting lifetime balance is published as
 `UGS_EventsEnum.CurrencyBalanceChanged`, carrying a `CurrencyBalanceUpdate`, which is what
 `CoinBasedAchievements` reads. That payload says whether the balance came from reading the store
 or from a write, because only a read may be used as a baseline - see the class remarks.
@@ -206,7 +206,7 @@ per run rather than per pickup.
   only from code that is currently commented out, so nothing wires them for you yet. Construct them
   yourself, or uncomment that block.
 - `DifficultyObserver` is not constructed by this package, so nothing here publishes
-  `GameSignals.DifficultySettingsAvailable`. A host that wants that signal has to drive it.
+  `GameServiceEvents.DifficultySettingsAvailable`. A host that wants that signal has to drive it.
 - `CoinBasedAchievements` is not placed in any sample scene, because none of the achievement
   definitions this project ships is coin-based. Add it beside `DistanceBasedAchievements` in
   `AchievementNotifications` once you have coin achievements to bind its threshold list to.

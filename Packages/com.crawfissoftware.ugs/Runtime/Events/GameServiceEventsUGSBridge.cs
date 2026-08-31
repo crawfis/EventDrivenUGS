@@ -2,55 +2,55 @@ using CrawfisSoftware.Contracts;
 using CrawfisSoftware.Events;
 
 using UnityEngine;
-using SignalsBus = CrawfisSoftware.Events.EventsFor<CrawfisSoftware.Contracts.GameSignals>;
+using GameServiceBus = CrawfisSoftware.Events.EventsFor<CrawfisSoftware.Contracts.GameServiceEvents>;
 using UGSBus = CrawfisSoftware.Events.EventsFor<CrawfisSoftware.UGS.Events.UGS_EventsEnum>;
 
 namespace CrawfisSoftware.UGS.Events
 {
     /// <summary>
-    /// Translates between the game-agnostic <see cref="GameSignals"/> contract and this layer's
-    /// own UGS events. The only boundary UGS has with the outside world.
+    /// Translates between the game-agnostic <see cref="GameServiceEvents"/> contract and this
+    /// layer's own UGS events. The only boundary UGS has with the outside world.
     /// </summary>
     /// <remarks>
-    /// <para>Still generic: it names <see cref="GameSignals"/> and <see cref="UGS_EventsEnum"/>,
-    /// and no game type at all.</para>
+    /// <para>Still generic: it names <see cref="GameServiceEvents"/> and
+    /// <see cref="UGS_EventsEnum"/>, and no game type at all.</para>
     /// <para>It also owns the services <em>level</em>. A plain event-to-event mapping cannot do
     /// that, because a dispatcher forwards the source event's payload and the level needs a
     /// <see cref="ServicesStatus"/> value chosen per source. So the status is published here, by
     /// hand, from the events that actually change it.</para>
     /// </remarks>
-    internal class GameSignalsUGSBridge : MonoBehaviour
+    internal class GameServiceEventsUGSBridge : MonoBehaviour
     {
         private static readonly EventId<ServicesStatus> StatusChanged =
-            SignalsBus.Id<ServicesStatus>(GameSignals.ServicesStatusChanged);
+            GameServiceBus.Id<ServicesStatus>(GameServiceEvents.ServicesStatusChanged);
 
-        private static readonly (GameSignals From, UGS_EventsEnum To)[] SignalsToUGS =
+        private static readonly (GameServiceEvents From, UGS_EventsEnum To)[] GameServiceToUGS =
         {
             // The game's score metric drives distance-based achievements. UGS does not know the
             // metric is metres - only that it is the number the game scores on.
-            (GameSignals.ScoreUpdated, UGS_EventsEnum.UGS_DistanceUpdated),
+            (GameServiceEvents.ScoreUpdated, UGS_EventsEnum.UGS_DistanceUpdated),
 
             // Soft-currency total drives economy sync and coin achievements.
-            (GameSignals.CurrencyTotalChanged, UGS_EventsEnum.UGS_CoinUpdated),
+            (GameServiceEvents.CurrencyTotalChanged, UGS_EventsEnum.UGS_CoinUpdated),
 
             // A finished run is a score to submit, coins to bank, then a leaderboard to show.
-            // SessionEnding appears twice deliberately: the pair list exists so one signal can
+            // SessionEnding appears twice deliberately: the pair list exists so one event can
             // declare several consequences, and these two are independent of each other.
-            (GameSignals.SessionEnding, UGS_EventsEnum.ScoreUpdating),
-            (GameSignals.SessionEnding, UGS_EventsEnum.CurrencySyncRequested),
-            (GameSignals.SessionEnded, UGS_EventsEnum.LeaderboardOpening),
+            (GameServiceEvents.SessionEnding, UGS_EventsEnum.ScoreUpdating),
+            (GameServiceEvents.SessionEnding, UGS_EventsEnum.CurrencySyncRequested),
+            (GameServiceEvents.SessionEnded, UGS_EventsEnum.LeaderboardOpening),
         };
 
-        private static readonly (UGS_EventsEnum From, GameSignals To)[] UGSToSignals =
+        private static readonly (UGS_EventsEnum From, GameServiceEvents To)[] UGSToGameService =
         {
             // The edges, for anything that wants the moment rather than the state.
-            (UGS_EventsEnum.PlayerAuthenticated, GameSignals.ServicesReady),
-            (UGS_EventsEnum.PlayerSignedOut, GameSignals.ServicesUnavailable),
+            (UGS_EventsEnum.PlayerAuthenticated, GameServiceEvents.ServicesReady),
+            (UGS_EventsEnum.PlayerSignedOut, GameServiceEvents.ServicesUnavailable),
 
             // UGS announces that config arrived. What the host does about it - hiding a loading
             // screen, say - is the host's business, not this layer's.
-            (UGS_EventsEnum.RemoteConfigUpdated, GameSignals.RemoteConfigApplied),
-            (UGS_EventsEnum.DifficultySettingsFetched, GameSignals.DifficultySettingsAvailable),
+            (UGS_EventsEnum.RemoteConfigUpdated, GameServiceEvents.RemoteConfigApplied),
+            (UGS_EventsEnum.DifficultySettingsFetched, GameServiceEvents.DifficultySettingsAvailable),
         };
 
         /// <summary>UGS events that mean "services are no longer usable".</summary>
@@ -63,16 +63,16 @@ namespace CrawfisSoftware.UGS.Events
             UGS_EventsEnum.PlayerSessionExpired,
         };
 
-        private readonly EventChainDispatcher<GameSignals, UGS_EventsEnum> _signalsToUGS =
-            new EventChainDispatcher<GameSignals, UGS_EventsEnum>(SignalsToUGS);
+        private readonly EventChainDispatcher<GameServiceEvents, UGS_EventsEnum> _gameServiceToUGS =
+            new EventChainDispatcher<GameServiceEvents, UGS_EventsEnum>(GameServiceToUGS);
 
-        private readonly EventChainDispatcher<UGS_EventsEnum, GameSignals> _ugsToSignals =
-            new EventChainDispatcher<UGS_EventsEnum, GameSignals>(UGSToSignals);
+        private readonly EventChainDispatcher<UGS_EventsEnum, GameServiceEvents> _ugsToGameService =
+            new EventChainDispatcher<UGS_EventsEnum, GameServiceEvents>(UGSToGameService);
 
         protected virtual void Awake()
         {
-            _signalsToUGS.Attach();
-            _ugsToSignals.Attach();
+            _gameServiceToUGS.Attach();
+            _ugsToGameService.Attach();
 
             UGSBus.Subscribe(UGS_EventsEnum.PlayerAuthenticated, OnAuthenticated);
             for (int i = 0; i < FailureEvents.Length; i++)
@@ -88,8 +88,8 @@ namespace CrawfisSoftware.UGS.Events
 
         protected virtual void OnDestroy()
         {
-            _signalsToUGS.Detach();
-            _ugsToSignals.Detach();
+            _gameServiceToUGS.Detach();
+            _ugsToGameService.Detach();
 
             UGSBus.Unsubscribe(UGS_EventsEnum.PlayerAuthenticated, OnAuthenticated);
             for (int i = 0; i < FailureEvents.Length; i++)
