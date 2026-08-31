@@ -21,6 +21,15 @@ package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   assembly reference.
 - The `UGS Boot Scenes` sample gains a `PlayerCurrency` object in `UGS_Boot_0_Initialization`.
 
+### Fixed
+
+- The sign-in modal now renders. `PlayerAccountLogin.uxml` was not well-formed XML - a comment
+  wrote a custom-property prefix literally, and a double hyphen is illegal inside an XML
+  comment - so Unity imported it to an EMPTY `VisualTreeAsset`, reporting nothing at import or
+  at run time. The panel was built full-size and unhidden with zero children in it, and
+  `root.Q<PlayerSignIn>()` returned null. It is the only UXML file in the package; every other
+  panel builds its tree in C#, which is why nothing else showed the fault.
+
 ### Changed
 
 - `CoinBasedAchievements` now reads the lifetime balance (`CurrencyBalanceChanged`) instead of
