@@ -31,6 +31,7 @@
     white-space: normal;
     margin-top: var(--ugs-space-4);
     margin-bottom: var(--ugs-space-2);
+    color: var(--ugs-color-text);
 }
 
 /* No background-image default: the element always assigns style.backgroundImage from the icon
@@ -123,16 +124,19 @@
     width: 56px;
     font-size: var(--ugs-text-md);
     -unity-font-style: bold;
+    color: var(--ugs-color-text);
 }
 
 .ugs-leaderboard-row__name {
     font-size: var(--ugs-text-sm);
+    color: var(--ugs-color-text);
 }
 
 .ugs-leaderboard-row__score {
     font-size: var(--ugs-text-sm);
     margin-left: auto;
     padding-left: var(--ugs-space-4);
+    color: var(--ugs-color-text);
 }
 
 .ugs-tab-bar {
@@ -164,9 +168,11 @@
     border-bottom-color: var(--ugs-color-text);
 }
 
-/* A Toggle renders its caption in a child Label, and the universal rule in UgsCore.uss sets a
-   colour on that child directly - so the colours above, set on the Toggle, never reached the text.
-   These three name the Label itself. */
+/* A Toggle renders its caption in a child Label, so the colours above - set on the Toggle - reach
+   the text only by inheritance. That is now possible, since UgsCore.uss no longer colours every
+   element directly, but it still loses to any rule that matches the Label, and Unity's own runtime
+   theme is free to carry one. These three name the Label itself so the tab colour is not left
+   depending on what the default theme happens to declare. */
 .ugs-tab-button .unity-toggle__text {
     color: var(--ugs-color-text-muted);
     -unity-text-align: middle-center;
@@ -200,6 +206,7 @@
     letter-spacing: var(--ugs-tracking-wide);
     -unity-font-style: bold;
     margin-bottom: var(--ugs-space-4);
+    color: var(--ugs-color-text);
 }
 
 .ugs-leaderboard__card {

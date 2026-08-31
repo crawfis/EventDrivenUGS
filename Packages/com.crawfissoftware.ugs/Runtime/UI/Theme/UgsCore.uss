@@ -48,18 +48,32 @@
 /* Scoped to panels that use this theme, i.e. UGS panels only. -unity-font is deliberately not
    set: shipping a font in a package means shipping a licence with it, and Unity's default font
    is already correct for every target. */
-/* CAUTION: a universal selector beats inheritance. `color` here therefore reaches every element
-   directly, so setting a different colour on a CONTAINER does not reach the text inside it - the
-   child matches this rule instead of inheriting. Any rule that wants to recolour text has to name
-   the element that actually carries the text (see .ugs-tab-button in UgsComponents.uss, which has
-   to target .unity-toggle__text rather than the Toggle). Removing `color` from here would let
-   inheritance work, but it is load-bearing for every element that has no colour rule of its own,
-   so it needs a visual pass rather than a blind edit. */
+/* margin and padding are not inherited, so zeroing them needs a rule that matches every element.
+   font-size and letter-spacing are here for the same reason `color` used to be - and carry the
+   same caveat below - but no rule in this theme sets either on a container, so nothing is waiting
+   on them. */
 * {
     margin: 0;
     padding: 0;
     font-size: var(--ugs-text-md);
     letter-spacing: var(--ugs-tracking-tight);
+}
+
+/* `color` is declared ONCE, on the root, so it reaches text by inheritance rather than by matching
+   it. That is the difference that matters: an inherited value loses to any rule that matches the
+   element, so a colour set on a CONTAINER now flows into the text inside it. It used to sit in the
+   universal rule above, which matched that text directly and beat the container every time.
+
+   The trade is that every element this theme colours has to say so itself - inheritance cannot
+   reach past a rule. All of them now do; the six that were living on the universal rule
+   (achievement card title, leaderboard title and the three row labels, sign-in header) were given
+   the identical colour explicitly in the same change, so nothing moved on screen.
+
+   :root matches the root of the visual tree, which is the panel root when this sheet arrives
+   through UgsRuntimeTheme.tss. A sheet attached further down the tree - PlayerAccountLogin.uxml
+   links this file directly - has no :root inside its scope, which is why UgsSignIn.uss carries its
+   own container-level colour rather than relying on this one. */
+:root {
     color: var(--ugs-color-text);
 }
 

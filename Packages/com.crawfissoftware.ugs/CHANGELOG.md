@@ -5,6 +5,40 @@ All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-08-31
+
+### Changed
+
+- **Breaking.** `RemoteConfigManager` now publishes `UGS_EventsEnum.DifficultySettingsFetched`
+  itself, from the response it already fetched, so the difficulty table finally reaches a game.
+  Nothing published that event before: it came only from `DifficultyObserver`, which no code in
+  this package ever constructed. A missing `difficulty_settings` key is not an error - the manager
+  logs and stays silent, leaving the game's own configs standing.
+
+- `color` no longer sits in the universal selector in `UgsCore.uss`. It is declared once on
+  `:root` and reaches text by inheritance, so a colour set on a container now flows into the text
+  inside it - a universal rule matched that text directly and won every time. The six elements that
+  were living on the universal rule (achievement card title, leaderboard title and its three row
+  labels, sign-in header) were given the identical colour explicitly, and `UgsSignIn.uss` gained a
+  container-level default for the case where `PlayerAccountLogin.uxml` links `UgsCore.uss` on its
+  own, below the root, where `:root` is not in scope. No colour on screen changes.
+
+### Removed
+
+- **Breaking.** `DifficultyObserver` and its `ServiceObserverHelpers`. The observer waited for
+  authentication and then made a *second* Remote Config round trip for a payload the manager's
+  fetch had already downloaded. Folding the one useful line into `RemoteConfigManager` removes the
+  duplicate fetch along with the type. A host that constructed it by hand - none could, it was
+  internal to the package's own flow - now needs nothing.
+- **Breaking.** `GameBalance`, `GameBalanceManager`, `FeatureFlags`, `FeatureFlagsManager`,
+  `CampaignEventConfig` and `CampaignEventConfigManager`. All six were public and complete, and all
+  six were constructed only from commented-out code. They were also unreachable by design: a game
+  cannot reference this assembly, so a typed view held on a manager in here has no way of crossing
+  to the game - only an event on the contract does. Reaching them would have meant inventing
+  contract vocabulary for daily rewards, video ads, multiplayer and campaign events, none of which
+  the reference game has. A host that wants those keys reads them from
+  `RemoteConfigService.Instance.appConfig` after `RemoteConfigUpdated`, in its own types.
+
 ## [0.4.0] - 2026-08-31
 
 ### Added
