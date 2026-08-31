@@ -136,7 +136,7 @@ a single root cause.</p>
     <td><code>com.crawfissoftware.ugs</code></td>
     <td>29 staged scripts + 21 original replacements; the leaderboard display and the
       achievements authoring assembly; theme, icons, sign-in UI</td>
-    <td><span class="tag t-todo">code done and compiling, scenes pending</span></td>
+    <td><span class="tag t-done">complete &mdash; code, scenes and samples</span></td>
   </tr>
 </table>
 </div>
@@ -315,22 +315,37 @@ finder missed, one attacking its impact - and kept only on a majority. 110 findi
 </div>
 
 <div class="card">
-  <p><span class="tag t-todo">open</span> &nbsp;<strong>The GitHub repo does not exist yet.</strong>
-  Everything is local. Nothing has been pushed.</p>
+  <p><span class="tag t-done">closed</span> &nbsp;<strong>Published.</strong> The repo is
+  <a href="https://github.com/crawfis/EventDrivenUGS">crawfis/EventDrivenUGS</a>, and the packages
+  are consumed from it by git URL. Current release: <strong>0.2.0</strong>.</p>
 </div>
 
 <div class="card warn">
-  <p><span class="tag t-todo">open</span> &nbsp;<strong>Nothing has been <em>run</em> against live
-  services.</strong> Compiling is necessary, not sufficient. The Cloud Save, Cloud Code and
-  Leaderboards call sites have been checked against the SDK sources on disk and now compile against
-  them, but no request has ever been made. That is what a linked project and a play session buy
-  that a build cannot.</p>
+  <p><span class="tag t-todo">partly open</span> &nbsp;<strong>Some of it has now run against live
+  services.</strong> Boot, initialization and authentication have been exercised in a linked project:
+  the sign-in modal renders and signs a player in, and the achievements catalogue load reaches Remote
+  Config. That first play session immediately earned its keep &mdash; it found three defects a build
+  could never have shown, all of them silent:</p>
+  <ul>
+    <li>the catalogue was fetched before sign-in, so Remote Config returned an empty response and
+      the failure was reported as a missing <code>achievements</code> key &mdash; blaming a
+      deployment that was fine;</li>
+    <li>the sign-in modal had <em>never</em> rendered, because
+      <code>PlayerAccountLogin.uxml</code> was malformed XML (an illegal <code>--</code> inside a
+      comment) and Unity imports such a file to an <em>empty</em> <code>VisualTreeAsset</code> with
+      no error at import or at run time;</li>
+    <li>the leaderboard panel shipped a tier id for a board with no tiers.</li>
+  </ul>
+  <p>Still unexercised: the currency path end to end (nothing has yet banked a coin into an Economy
+  balance), the Cloud Code trusted backends, and leaderboard submission.</p>
 </div>
 
 <div class="card good">
-  <p><span class="tag t-done">safe</span> &nbsp;<strong><code>RunnerUGSTemplate</code> is untouched
-  and fully playable.</strong> Per the chosen sequencing, the cutover there is a separate later PR.
-  Rolling back means simply not doing it.</p>
+  <p><span class="tag t-done">closed</span> &nbsp;<strong>The cutover is done.</strong>
+  <code>RunnerUGSTemplate</code> now consumes all three packages by git URL;
+  <code>Assets/UGS/Scripts</code> and <code>Assets/_Common</code> are gone from it, and the game's
+  half of the contract lives in <code>Assets/UGSGlue/</code>. Rolling back now means pinning an
+  older commit, not declining to start.</p>
 </div>
 
 <h2>Install shape</h2>
