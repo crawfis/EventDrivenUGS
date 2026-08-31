@@ -1,7 +1,7 @@
 {
   "name": "com.crawfissoftware.ugs",
   "displayName": "CrawfisSoftware - Unity Gaming Services",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "unity": "6000.5",
   "description": "A Unity Gaming Services integration expressed entirely as events: initialization, authentication and sign-in UI, remote config, leaderboards, achievements and a persistent soft-currency balance backed by Economy. The game and the services layer talk only through the GameSignals contract, so either side can be replaced - or removed - without the other noticing.\n\nContains no Asset Store content and no generated Cloud Code bindings, so it installs into any project without a prior import step.\n\nREQUIRES com.crawfissoftware.eventspublisher, .common and .contracts. All three are distributed by git URL and therefore cannot be declared as resolvable dependencies here - add them to your project manifest yourself. See the README.",
   "keywords": [
