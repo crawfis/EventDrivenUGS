@@ -17,7 +17,7 @@ Two types, and deliberately nothing else:
 
 | Type | Purpose |
 |------|---------|
-| `GameServiceEvents` | The enum. Game -> services: `ScoreUpdated`, `CurrencyTotalChanged`, `SessionEnding`, `SessionEnded`. Services -> game: `ServicesReady`, `ServicesUnavailable`, `ServicesStatusChanged`, `RemoteConfigApplied`, `DifficultySettingsAvailable`. |
+| `GameServiceEvents` | The enum. Game -> services: `ScoreUpdated`, `CurrencyTotalChanged`, `SessionEnding`, `SessionEnded`. Services -> game: `ServicesReady`, `ServicesUnavailable`, `ServicesStatusChanged`, `RemoteConfigApplied`, `DifficultySettingsAvailable`, `CurrencyBalanceChanged` (Sticky `long` - the banked lifetime balance, not the mirror of `CurrencyTotalChanged`). |
 | `ServicesStatus` | `Connecting` / `Ready` / `Unavailable`. Three values rather than a bool, because "not ready" is two different situations to a player: still trying, and gave up. |
 
 Every member is a crossing someone maintains forever, so the enum carries only what a service
@@ -25,8 +25,9 @@ genuinely needs. Anything specific to one game belongs in that game's own domain
 into these events by per-game glue.
 
 `ServicesStatusChanged` is `Sticky` on purpose: the glue that translates it into a host's
-lifecycle lives in an additively-loaded scene and may subscribe long after services came up. A
-transient edge would already be gone, and the boot would stall with no menu and no error.
+lifecycle lives in an additively-loaded scene and may subscribe long after services came up.
+Sticky replays the current status to a late subscriber; a one-shot announcement would already
+be gone, and the boot would stall with no menu and no error.
 
 ## Install
 

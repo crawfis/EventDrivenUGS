@@ -7,8 +7,10 @@ package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.4.0] - 2026-08-31
 
-No code changes. The version is aligned with the `v0.4.0` repository tag, because the three
-packages share one tag stream and version together.
+No code changes. The version was bumped alongside contracts 0.4.0 (which added
+`CurrencyBalanceChanged`). Erratum: this entry originally claimed alignment with a `v0.4.0`
+repository tag - no such tag was ever created, and from 0.4.0 on the three packages version
+independently rather than sharing one tag stream (ugs is already at 0.5.0).
 
 ## [0.3.0] - 2026-08-31
 

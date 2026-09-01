@@ -25,10 +25,12 @@ other in, so every one you use must be listed in your own manifest, along with E
 ```
 
 The URL grammar is `protocol://host/path.git?path=/subfolder#revision` - `?path=` always precedes
-`#revision`. Pin a revision by appending a tag, e.g. `#v0.3.0` - the packages are at **0.3.0**,
-and `main` is what an unpinned URL tracks. Pin it: `GameSignals` was renamed to
-`GameServiceEvents` in 0.3.0, and an unpinned consumer picks up a breaking rename at whatever
-moment it next resolves.
+`#revision`. Pin a revision by appending a tag, e.g. `#v0.3.0` - `main` is what an unpinned URL
+tracks, and it carries breaking changes: `GameSignals` was renamed to `GameServiceEvents` in
+contracts 0.3.0, and an unpinned consumer picks up a rename like that at whatever moment it next
+resolves. The packages now version independently - **contracts 0.4.0, common 0.4.0, ugs 0.5.0** -
+and the repository tags (`v0.2.0`, `v0.3.0` so far) mark cross-package snapshots; the 0.4.x/0.5.x
+releases are currently only on `main`, untagged.
 
 ```
   game events   <->   GameServiceEvents   <->   UGS events
@@ -38,8 +40,9 @@ moment it next resolves.
 ## Why one repository
 
 The three change together. A monorepo makes a change spanning `Common` and `UGS` one atomic commit
-instead of two commits in two repos that can never be atomic. The cost is a shared tag stream: all
-three version together.
+instead of two commits in two repos that can never be atomic. The packages still version
+independently (a ugs-only fix does not force a contracts bump - the versions are deliberately
+skewed); a repository tag, when cut, snapshots all three at once.
 
 ## Third-party content
 
