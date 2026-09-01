@@ -181,7 +181,7 @@ the amount per call and no more. "Goes through Cloud Code" is not the same as "c
 | `GetCurrencyBalance` | `currencyId` (string) | `{ "CurrencyId": string, "Balance": long }` |
 | `AddCurrency` | `currencyId` (string), `amount` (int, negative to spend) | the same shape |
 
-`PlayerCurrencyManager.DefaultCurrencyId` is `"COIN"`. It is a **wire contract**: it must match a
+`PlayerCurrencyManager.DefaultCurrencyId` is `"COIN"`. The name **must match exactly** a
 currency you created in the Unity Dashboard under Economy > Currencies, and nothing checks it at
 compile time. A wrong id surfaces as `CurrencyBackendException.IsCurrencyNotFound` on the first
 call, rather than as a balance that silently stays at zero.

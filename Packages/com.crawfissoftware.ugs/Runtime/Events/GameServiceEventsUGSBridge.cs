@@ -15,8 +15,8 @@ namespace CrawfisSoftware.UGS.Events
     /// <remarks>
     /// <para>Still generic: it names <see cref="GameServiceEvents"/> and
     /// <see cref="UGS_EventsEnum"/>, and no game type at all.</para>
-    /// <para>It also owns the services <em>level</em>. A plain event-to-event mapping cannot do
-    /// that, because a dispatcher forwards the source event's payload and the level needs a
+    /// <para>It also owns the services <em>status</em>. A plain event-to-event mapping cannot do
+    /// that, because a dispatcher forwards the source event's payload and the status needs a
     /// <see cref="ServicesStatus"/> value chosen per source. So the status is published here, by
     /// hand, from the events that actually change it.</para>
     /// </remarks>
@@ -47,7 +47,7 @@ namespace CrawfisSoftware.UGS.Events
 
         private static readonly (UGS_EventsEnum From, GameServiceEvents To)[] UGSToGameService =
         {
-            // The edges, for anything that wants the moment rather than the state.
+            // The one-shot announcements, for anything that wants the moment rather than the state.
             (UGS_EventsEnum.PlayerAuthenticated, GameServiceEvents.ServicesReady),
             (UGS_EventsEnum.PlayerSignedOut, GameServiceEvents.ServicesUnavailable),
 
@@ -85,7 +85,7 @@ namespace CrawfisSoftware.UGS.Events
                 UGSBus.Subscribe(FailureEvents[i], OnFailed);
             }
 
-            // Publish the starting level before anything can ask. This scene loads first in the
+            // Publish the starting status before anything can ask. This scene loads first in the
             // UGS chain, so "Connecting" is the honest answer until authentication says otherwise,
             // and a host that subscribes late still gets a state rather than silence.
             StatusChanged.Publish(this, ServicesStatus.Connecting);
@@ -122,7 +122,7 @@ namespace CrawfisSoftware.UGS.Events
         /// event's payload untouched, and the UGS payload is a <see cref="CurrencyBalanceUpdate"/>
         /// - a type in this package. Forwarding it would hand a game a services type to cast, which
         /// is the coupling this bridge exists to prevent. So the number is unwrapped by hand, the
-        /// same way the services level is.
+        /// same way the services status is.
         /// </remarks>
         private void OnCurrencyBalanceChanged(string eventName, object sender, object data)
         {

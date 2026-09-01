@@ -23,8 +23,8 @@ then name it.
 | `PlayerCurrencyService.cs` | `GetCurrencyBalance` and `AddCurrency`, harvested from the currency half of `TempleRunUGSCloud`'s `PlayerEconomyService` |
 | `ModuleSetup.cs` | `ICloudCodeSetup` registering `GameApiClient`, same shape as the existing Blocks modules |
 
-The two function names are the wire contract with `CloudCodeCurrencyEndpoints.Default`, and the
-`CurrencyBalance` property names are the wire contract with `CurrencyBalanceDto`. Renaming any of
+The two function names must match `CloudCodeCurrencyEndpoints.Default` exactly, and the
+`CurrencyBalance` property names must match `CurrencyBalanceDto` exactly. Renaming any of
 them fails at runtime with nothing to say so.
 
 ### What was left behind

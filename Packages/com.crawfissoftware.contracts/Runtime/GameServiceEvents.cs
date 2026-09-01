@@ -46,26 +46,26 @@ namespace CrawfisSoftware.Contracts
         // ---------- Services -> Game ----------
 
         /// <summary>
-        /// Edge: services just became available. Transient, for the moment itself - a sound, a
-        /// transition. Anything that needs to know the current state reads
+        /// The moment services became available. Announced once, for the moment itself - a
+        /// sound, a transition. Anything that needs to know the current state reads
         /// <see cref="ServicesStatusChanged"/> instead.
         /// </summary>
         ServicesReady = 20,
 
-        /// <summary>Edge: services just became unavailable. Transient, as above.</summary>
+        /// <summary>The moment services became unavailable. Announced once, as above.</summary>
         ServicesUnavailable = 21,
 
         /// <summary>
-        /// The level: what the services state currently IS. Data: <see cref="ServicesStatus"/>.
+        /// The current status: what the services state IS right now. Data: <see cref="ServicesStatus"/>.
         /// </summary>
         /// <remarks>
         /// <para>Sticky, and that is the whole point. The glue that translates this into the host's
         /// lifecycle lives in an additively-loaded scene, so it may subscribe long after services
-        /// came up. A transient edge would already be gone and the boot would stall with no menu
-        /// and no error - which is exactly what happened before this existed.</para>
+        /// came up. A one-shot announcement would already be gone and the boot would stall with
+        /// no menu and no error - which is exactly what happened before this existed.</para>
         /// <para>Sticky is only safe here because this is one event carrying a value, not two
-        /// opposing edges. Marking ServicesReady and ServicesUnavailable Sticky would replay both
-        /// to a late subscriber, independently, in registration order.</para>
+        /// opposing announcements. Marking ServicesReady and ServicesUnavailable Sticky would
+        /// replay both to a late subscriber, independently, in registration order.</para>
         /// </remarks>
         [EventPayload(typeof(ServicesStatus))]
         [EventDelivery(EventDelivery.Sticky)]
@@ -91,8 +91,8 @@ namespace CrawfisSoftware.Contracts
         /// the session count is not a balance and resets every run.</para>
         /// <para><b>Sticky</b>, for the reason <see cref="ServicesStatusChanged"/> is: the balance
         /// is read once at sign-in, long before a HUD in an additively-loaded scene exists to hear
-        /// it. As an edge it would leave that HUD blank until a run ended and banked. Safe here
-        /// because it is one event carrying a value, not two opposing edges.</para>
+        /// it. Announced only once, it would leave that HUD blank until a run ended and banked.
+        /// Safe here because it is one event carrying a value, not two opposing announcements.</para>
         /// <para>A <c>long</c>, not the service's own update type. The type carrying this number
         /// on the services side belongs to that layer, and a contract that names it would not be
         /// a contract - so only the number crosses.</para>
