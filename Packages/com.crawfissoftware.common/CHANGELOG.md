@@ -5,6 +5,27 @@ All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-09-06
+
+The package's two coroutines become Unity `Awaitable`s, matching the consuming projects'
+migration (EndlessRunnerTemplate `docs/specs/AWAITABLE_MIGRATION.md`, ported to
+RunnerUGSTemplate). Requires Unity 6 for `Awaitable` and `MonoBehaviour.destroyCancellationToken`.
+
+### Added
+
+- `CrawfisSoftware.Utility.Wait.ForSecondsRealtime(float seconds, CancellationToken token)` -
+  the `Awaitable` equivalent of `WaitForSecondsRealtime`, which Unity does not ship.
+  `Awaitable.WaitForSecondsAsync` is scaled and never completes while `Time.timeScale` is 0;
+  use this for anything that must keep running through a pause.
+
+### Changed
+
+- `TimedEvent` and `LoadSceneAfterGameControlEvent` no longer use coroutines: each wait is an
+  `await` that takes `destroyCancellationToken`, so the method dies with its MonoBehaviour the
+  way the coroutine did. Both keep their realtime/scaled behaviour exactly (`TimedEvent`'s
+  `_useRealtime` arm goes through `Wait.ForSecondsRealtime`; the delayed scene load was and
+  stays realtime). Inspector fields are unchanged.
+
 ## [0.4.0] - 2026-08-31
 
 No code changes. The version was bumped alongside contracts 0.4.0 (which added
